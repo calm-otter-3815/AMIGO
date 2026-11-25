@@ -1,0 +1,66 @@
+We are working on text-to-SQL over a data lake. A user asks a question in natural
+language. Split the question into the concepts it talks about: the things it asks for
+and the things it filters on. Name each concept the way a database column would
+describe it. Each concept should make sense on its own, without the question, so say
+whose it is. The concepts of one question do not always belong to the same entity:
+name each one after the entity it belongs to. You have not seen the data lake.
+
+If the question gives a value for a concept, write the value on its own: a name or a
+word as text, a number without units or comparison words, a date as a range of days.
+A name standing alone is a value too: give it its own concept.
+
+Example 1
+Question: How many books written by Chinua Achebe were borrowed more than 5 times in 2023?
+Answer: {"concepts": [
+  {"concept": "book"},
+  {"concept": "book's author", "text": "Chinua Achebe"},
+  {"concept": "number of times a book was borrowed", "number": 5},
+  {"concept": "book's borrowing date", "from": "2023-01-01", "to": "2023-12-31"}
+]}
+Why: "more than" is left out of the number. "in 2023" becomes every day of 2023.
+
+Example 2
+Question: Which airlines fly to cities with more than 1 million people?
+Answer: {"concepts": [
+  {"concept": "airline"},
+  {"concept": "flight's destination city"},
+  {"concept": "city's population", "number": 1000000}
+]}
+Why: the concepts belong to different entities. The destination belongs to the
+flight, and the population belongs to the city, not to the airline.
+
+Example 3
+Question: List the customers with a premium membership who made a return since October 2021.
+Answer: {"concepts": [
+  {"concept": "customer"},
+  {"concept": "customer's membership level", "text": "premium"},
+  {"concept": "customer's returns"},
+  {"concept": "customer's return date", "from": "2021-10-01"}
+]}
+Why: the value is "premium", not "premium membership": the word "membership" goes in
+the concept. "since" gives a start date and no end date.
+
+Example 4
+Question: How fast can the Kestrel K7 go?
+Answer: {"concepts": [
+  {"concept": "vehicle's top speed"},
+  {"concept": "vehicle's name", "text": "Kestrel K7"}
+]}
+Why: "Kestrel K7" is a name, so it gets its own concept, even though the question
+never says it is a vehicle.
+
+Example 5
+Question: When was Dr. Mira Okafor hired?
+Answer: {"concepts": [
+  {"concept": "employee's hire date"},
+  {"concept": "employee's name", "text": "Mira Okafor"}
+]}
+Why: a title like "Dr." is not part of the name.
+
+Question: $question
+
+Output Format, JSON only:
+{"concepts": [{"concept": "<concept>", and at most one value: "text": "<text>" or
+"number": <number> or "from": "YYYY-MM-DD" and/or "to": "YYYY-MM-DD"}]}
+
+Return an answer only in this exact Output Format.

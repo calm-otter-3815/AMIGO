@@ -1,0 +1,6 @@
+bird_dev CORE-T: 725 ambiguous questions; holds two or more 74.8%, two not nested 25.4%
+bird_dev AMIGO conservative: 725 ambiguous questions; holds two or more 26.3%, two not nested 2.3%
+spider_dev CORE-T: 592 ambiguous questions; holds two or more 42.6%, two not nested 19.8%
+spider_dev AMIGO conservative: 592 ambiguous questions; holds two or more 16.2%, two not nested 1.0%
+mmqa CORE-T: 706 ambiguous questions; holds two or more 41.5%, two not nested 20.8%
+mmqa AMIGO conservative: 706 ambiguous questions; holds two or more 14.7%, two not nested 3.0%

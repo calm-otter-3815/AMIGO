@@ -1,0 +1,55 @@
+You asked a question about a data lake: several databases, each with tables and columns.
+What you want is said in plain words below. A search tool shows the tables it found for
+your question, each with its database and columns. Tick the tables you need to get what
+you want.
+
+How to answer:
+
+- "tables" lists the number of every table you need: each one that holds records or
+  values you want, and each one needed to link those tables together. Leave out the
+  others.
+- "missing" is true when a table you need is not shown; "tables" then lists the ones you
+  need that are shown.
+- "why" is at most 120 characters, in plain words.
+
+Output Format, JSON and nothing else:
+
+{
+  "tables": [1, 2],
+  "missing": false,
+  "why": "at most 120 characters"
+}
+
+Example 1
+Your question: Which cranes in the port were taller than 70 metres in 2011?
+What you want: You want the ids of the port's cranes whose height, as listed for each crane, is over 70 metres, among the cranes that had an audit in 2011.
+Tables:
+1. port.cranes: crane_id, model, height_m, built_year
+2. port.audits: audit_id, crane_id, year, result
+3. port.berths: berth_id, length_m, crane_id
+
+{
+  "tables": [1, 2],
+  "missing": false,
+  "why": "heights are in the cranes table, the 2011 audits in the audits table"
+}
+
+Example 2
+Your question: How many members of the Larkspur beekeeping club are over 60?
+What you want: You want the number of people in the membership list whose club is Larkspur and whose age is over 60.
+Tables:
+1. apiary.hives: hive_id, club_id, site
+2. garden.plots: plot_id, owner, site, size_m2
+
+{
+  "tables": [],
+  "missing": true,
+  "why": "no table lists the members with their age"
+}
+
+Your question: $question
+What you want: $meant
+Tables:
+$shown
+
+Return an answer only in this exact Output Format.

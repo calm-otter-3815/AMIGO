@@ -1,0 +1,13 @@
+# Python 3.11. torch: the CUDA build that fits your GPU driver (see pytorch.org);
+# the CPU build also works, only slower on big lakes such as MMQA.
+httpx==0.28.1
+matplotlib==3.10.9
+numpy==2.4.6
+openai==2.41.0
+pydantic==2.13.4
+pytest==9.1.1
+python-dotenv==1.2.1
+scikit-learn==1.8.0
+sentence-transformers==5.5.1
+torch==2.12.0
+tqdm==4.67.3

@@ -1,0 +1,28 @@
+You split database names that were written without spaces into their words.
+
+Each line below is one piece of a table or column name from one database, lower case.
+For each piece, give its words in order, lower case, separated by single spaces.
+Rules:
+- The words, joined without spaces, must spell the piece exactly, letter for letter.
+- Keep an abbreviation or a code as one word when it is not made of words.
+- If the piece is one word or one abbreviation, give it back whole.
+
+Examples, from a made-up library-loans database:
+isborrowedby -> is borrowed by
+hasduedateof -> has due date of
+opacurl -> opac url
+renewals -> renewals
+isbnten -> isbn ten
+
+Pieces:
+$names
+
+Output Format, JSON and nothing else:
+
+{
+  "names": [
+    {"name": "the piece exactly as listed", "words": "its words, lower case, single spaces"}
+  ]
+}
+
+Return an answer only in this exact Output Format.

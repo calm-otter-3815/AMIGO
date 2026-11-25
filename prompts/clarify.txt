@@ -1,0 +1,130 @@
+A person asked a question about a database. The question fits several
+interpretations at once, and code has already found the one place where they
+disagree and the exact choices on offer. Your only job is to word the question
+that settles it, and to give each choice a short label a person can recognise.
+
+The options below are fixed. You may not add one, drop one, merge two or change
+which interpretations an option stands for. Every id printed below appears in
+your answer exactly once, and no other id does.
+
+Each option line is: id | the column path, or "table" and the table path when being a
+row of that table is the whole meaning, with no value test, or "database" and a
+database name, or "leave out the part" and a part of the question, or "through tables"
+and the tables when only the joins differ | value, when the option
+also pins a stored value | why it was picked | what the database says that column or
+table holds, with a few values it stores | how many interpretations it keeps | the
+tables and joins those interpretations go through, shown only when the options differ
+in them.
+
+How to word it:
+
+- The question is one short sentence in plain words, about what the person meant. It
+  never names a column, a table or an interpretation. No jargon, no SQL.
+- Each label is at most 60 characters, and says what that choice means in the
+  person's terms, not the column's name. Two labels are never the same.
+- Each label says what makes that choice different from the other choices, in
+  words a person who has never seen the database understands: name the thing the
+  column holds, not the column.
+- The question says what the choice changes about the answer they get.
+- When the values shown are id numbers or codes, the label says so, like "the
+  asset's id number": the answer will show those, not names.
+- When the lines show tables and joins, choosing an option also changes how its rows
+  connect to the rest of the question. Then the label says that connection in plain
+  words, like "clubs in the coach's home city". It stays a label for that option,
+  never a new choice about the connection.
+- A database option: say what that database is about, from its tables, in plain
+  words, like "the school records" or "the sports league data".
+- A "leave out the part" option: say plainly which part of the question would be
+  dropped, like "drop the year".
+- A "through tables" option: say how the rows connect, from its tables and
+  joins, like "the coach's own clubs" or "clubs in the coach's home city".
+- A table option means only the rows of that table count. Say what those rows are in
+  plain words, like "only the parcels on the refund list".
+- Say nothing about which option is more popular. The counts are there so you can
+  tell a broad choice from a narrow one, not to recommend one.
+- When the options pin different stored values and the reasons say the person's
+  own words are not stored, ask which of those values means their words, quoting
+  them. Each label shows its stored value exactly as printed. Never guess what a
+  code stands for: a wrong guess reads as a fact.
+
+Output Format, JSON and nothing else:
+
+{
+  "question": "one short sentence",
+  "options": [
+    {"id": "the id exactly as printed below", "label": "at most 60 characters"}
+  ]
+}
+
+Example 1
+Question: Which airports handled the most passengers last year?
+The choice is about: number of passengers
+Options:
+  o1 | travel.airport_traffic.Total_Passengers | the column holding every passenger counted at the airport | every passenger recorded at the airport that year, arriving, leaving or in transit; values like 4120533, 980112, 15377020 | keeps 4
+  o2 | travel.airport_traffic.Domestic_Passengers | passengers on flights that stayed inside the country | passengers whose flight began and ended inside the country; values like 2210400, 640981, 7012345 | keeps 2
+  o3 | travel.airport_traffic.Transit_Passengers | passengers who only changed planes there | passengers who changed planes and never left the terminal; values like 120044, 9810, 2300561 | keeps 1
+
+{
+  "question": "Which passengers should the totals count?",
+  "options": [
+    {"id": "o1", "label": "everyone who passed through"},
+    {"id": "o2", "label": "domestic flights only"},
+    {"id": "o3", "label": "people changing planes only"}
+  ]
+}
+
+Example 2
+Question: List the members who joined the Riverside branch in 2023.
+The choice is about: branch name
+Options:
+  o1 | gym.branch.branch_name | value Riverside | the name each branch trades under | the trading name of the branch, unique across the chain; values like Riverside, Old Mill, Canal Street | keeps 3
+  o2 | gym.branch.district | value Riverside | the part of the city the branch sits in | the city district the branch address falls in, shared by several branches; values like Riverside, Northgate, Harbour | keeps 3
+
+{
+  "question": "Does Riverside name the branch itself, or the part of town it is in?",
+  "options": [
+    {"id": "o1", "label": "the branch called Riverside"},
+    {"id": "o2", "label": "any branch in the Riverside district"}
+  ]
+}
+
+Example 3
+Question: How many parcels came back to the sender in May?
+The choice is about: parcel status
+Options:
+  o1 | post.parcel.status | value D | chosen by the person; 'came back to the sender' is not stored, the column holds 'D' | a one-letter code for where the parcel is now; values like D, R, L | keeps 1
+  o2 | post.parcel.status | value R | chosen by the person; 'came back to the sender' is not stored, the column holds 'R' | a one-letter code for where the parcel is now; values like D, R, L | keeps 1
+  o3 | post.parcel.status | value L | chosen by the person; 'came back to the sender' is not stored, the column holds 'L' | a one-letter code for where the parcel is now; values like D, R, L | keeps 1
+
+{
+  "question": "Which of these stored codes means \"came back to the sender\"?",
+  "options": [
+    {"id": "o1", "label": "the code D"},
+    {"id": "o2", "label": "the code R"},
+    {"id": "o3", "label": "the code L"}
+  ]
+}
+
+Example 4
+Question: Which teams did the coach Lena Varga train?
+The choice is about: team
+Options:
+  o1 | sport.team.team_name | matches "team" | the name the team plays under; values like Harbor Hawks, Mill Street FC, North Rovers | keeps 2 | through tables sport.coach, sport.contract, sport.team; joins sport.contract.coach_id = sport.coach.coach_id, sport.contract.team_id = sport.team.team_id
+  o2 | sport.team.team_id | matches "team" | the number that identifies the team; values like 3021, 3022, 3107 | keeps 1 | through tables sport.coach, sport.contract, sport.team; joins sport.contract.coach_id = sport.coach.coach_id, sport.contract.team_id = sport.team.team_id
+  o3 | sport.club.club_name | matches "team" | the club a team plays for; values like Harbor Athletic, Mill Street Club, Rovers SC | keeps 1 | through tables sport.city, sport.club, sport.coach; joins sport.coach.home_city = sport.city.city_id, sport.club.city_id = sport.city.city_id
+
+{
+  "question": "Do you mean the teams she had a contract with, or the clubs in her home city?",
+  "options": [
+    {"id": "o1", "label": "names of the teams she had a contract with"},
+    {"id": "o2", "label": "id numbers of the teams she had a contract with"},
+    {"id": "o3", "label": "clubs based in the city she lives in"}
+  ]
+}
+
+Question: $question
+The choice is about: $axis
+Options:
+$options
+
+Return an answer only in this exact Output Format.

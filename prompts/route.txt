@@ -1,0 +1,114 @@
+A question about a database has already been answered: one interpretation was
+settled on, one SQL query ran against it, and rows came back. The person has now
+typed a few more words. Say where those words have to go.
+
+There are exactly two places:
+
+- rewrite: everything the new words need is in the tables on the cards below,
+  the tables the interpretation already uses. They may change a filter, an
+  aggregate, a grouping, an order or a limit, or show a column of those tables
+  that the SQL that ran did not use. Only the SQL has to change. Nothing is
+  looked up again.
+- restart: the new words need a table that is not on the cards, or they ask
+  something else entirely. The whole search starts again.
+
+Pick rewrite when each new thing the words ask for has one clear meaning in the
+tables on the cards. Pick restart when a new thing is in none of those tables, or
+when it could mean two or more different things there, as in Example 6 (the date
+taken or the date returned): which one is meant is then for the person to settle,
+not for the SQL. Two columns of joined tables that hold the same thing about the
+same row, such as a name stored in both, are one meaning, not two.
+
+Also write the question the person wants answered now. Start from their original
+question, fold in everything they have already settled in the turns below unless
+the new words replace it, as in Example 3, and fold in what they have just
+typed. It must be one short question that stands on its own. Name things by what
+they are, never by where they were shown: never refer to a numbered list or
+option, and never refer to this conversation.
+
+Output Format, JSON and nothing else:
+
+{"route": "rewrite or restart",
+ "question": "one short self-contained question"}
+
+Example 1
+Original question: Which harbour handled the most cargo in 2019?
+Turns so far: none
+SQL that ran: SELECT harbour.name FROM harbour JOIN cargo ON cargo.harbour_id = harbour.harbour_id WHERE cargo.year = 2019 ORDER BY cargo.tonnes DESC LIMIT 1
+Columns it returned: name
+Cards in the context: port.harbour (harbour_id, name, country, opened), port.cargo (cargo_id, harbour_id, year, tonnes)
+They typed: show the tonnage as well
+
+{"route": "rewrite", "question": "Which harbour handled the most cargo in 2019, and how many tonnes was that?"}
+
+Example 2
+Original question: Which harbour handled the most cargo in 2019?
+Turns so far: none
+SQL that ran: SELECT harbour.name FROM harbour JOIN cargo ON cargo.harbour_id = harbour.harbour_id WHERE cargo.year = 2019 ORDER BY cargo.tonnes DESC LIMIT 1
+Columns it returned: name
+Cards in the context: port.harbour (harbour_id, name, country, opened), port.cargo (cargo_id, harbour_id, year, tonnes)
+They typed: who is the harbour master there
+
+{"route": "restart", "question": "Who is the harbour master of the harbour that handled the most cargo in 2019?"}
+
+Example 3
+Original question: How many members joined the Northgate branch in 2024?
+Turns so far:
+  asked: Which date counts as joining? | options: the signup date, the first visit | they answered: the signup date
+SQL that ran: SELECT COUNT(member.member_id) FROM member JOIN branch ON member.branch_id = branch.branch_id WHERE branch.branch_name = 'Northgate' AND strftime('%Y', member.signup) = '2024'
+Columns it returned: COUNT(member.member_id)
+Cards in the context: club.member (member_id, branch_id, signup, first_visit), club.branch (branch_id, branch_name, city)
+They typed: forget that, which branch is the busiest
+
+{"route": "restart", "question": "Which branch has the most members?"}
+
+Example 4
+Original question: Which books were overdue in March?
+Turns so far: none
+SQL that ran: SELECT book.title FROM loan JOIN book ON loan.book_id = book.book_id WHERE loan.returned > date(loan.taken, '+21 days') AND strftime('%m', loan.taken) = '03'
+Columns it returned: title
+Cards in the context: lib.loan (loan_id, book_id, member_id, taken, returned, desk), lib.book (book_id, title, shelf)
+They typed: April instead, and when each one went out
+
+{"route": "rewrite", "question": "Which books were overdue in April, and when was each one taken out?"}
+
+Example 5
+Original question: Which books were overdue in March?
+Turns so far: none
+SQL that ran: SELECT book.title FROM loan JOIN book ON loan.book_id = book.book_id WHERE loan.returned > date(loan.taken, '+21 days') AND strftime('%m', loan.taken) = '03'
+Columns it returned: title
+Cards in the context: lib.loan (loan_id, book_id, member_id, taken, returned, desk), lib.book (book_id, title, shelf)
+They typed: and who had each one
+
+{"route": "restart", "question": "Which books were overdue in March, and which member had each one?"}
+
+Example 6
+Original question: Which books were overdue in March?
+Turns so far: none
+SQL that ran: SELECT book.title FROM loan JOIN book ON loan.book_id = book.book_id WHERE loan.returned > date(loan.taken, '+21 days') AND strftime('%m', loan.taken) = '03'
+Columns it returned: title
+Cards in the context: lib.loan (loan_id, book_id, member_id, taken, returned, desk), lib.book (book_id, title, shelf)
+They typed: add the date too
+
+{"route": "restart", "question": "Which books were overdue in March, and on what date?"}
+
+Example 7
+Original question: How many books were overdue in March?
+Turns so far: none
+SQL that ran: SELECT COUNT(loan.loan_id) FROM loan WHERE loan.returned > date(loan.taken, '+21 days') AND strftime('%m', loan.taken) = '03'
+Columns it returned: COUNT(loan.loan_id)
+Cards in the context: lib.loan (loan_id, book_id, member_id, taken, returned, desk), lib.book (book_id, title, shelf)
+They typed: which shelf are they on
+
+{"route": "rewrite", "question": "Which books were overdue in March, and which shelf is each one on?"}
+
+Original question: $original
+Turns so far:
+$turns
+SQL that ran: $sql
+Columns it returned: $columns
+Cards in the context:
+$context
+They typed: $reply
+
+Return an answer only in this exact Output Format.

@@ -1,0 +1,29 @@
+You are documenting a database for a data catalog.
+
+Database: $database
+Table: $table
+Rows: $n_rows
+Columns, one per line, as: name | declared type | distinct values | sample values
+$columns
+
+In the "table_description" field, write one sentence saying what a single row represents and
+what the table is for.
+
+In "columns", write one short sentence per column saying what its value means, one
+entry per column, using the column's exact original name. Rules:
+- Plain English. No jargon, and do not restate the column name as its definition.
+- Use the sample values to work out what a column holds when its name is unclear.
+- Say only what the name, type and samples support. Where a column stays unclear,
+  say what it appears to hold rather than inventing a fact.
+- Cover every listed column exactly once, and add no others.
+
+Output Format, JSON and nothing else:
+
+{
+  "table_description": "one sentence: what a single row represents and what the table is for",
+  "columns": [
+    {"name": "the column's exact original name", "description": "one short sentence"}
+  ]
+}
+
+Return an answer only in this exact Output Format.

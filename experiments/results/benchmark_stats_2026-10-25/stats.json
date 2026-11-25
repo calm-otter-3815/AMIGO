@@ -1,0 +1,324 @@
+[
+ {
+  "lake": "BIRD",
+  "databases": 11,
+  "tables": 75,
+  "columns": 798,
+  "questions in labeler": 1534,
+  "gold": {
+   "questions (retrieval)": 1534,
+   "questions (SQL)": 1527,
+   "tables per query": {
+    "mean": 1.941329856584094,
+    "median": 2.0,
+    "max": 5,
+    "min": 1
+   },
+   "share single-table": 23.663624511082137,
+   "databases per query": {
+    "mean": 1,
+    "median": 1.0,
+    "max": 1,
+    "min": 1
+   }
+  },
+  "multi": {
+   "questions (retrieval)": 1534,
+   "questions (SQL)": 1533,
+   "valid queries per question": {
+    "mean": 2.7151238591916558,
+    "median": 2.0,
+    "max": 14,
+    "min": 1
+   },
+   "share with 2+ valid queries": 64.47196870925684,
+   "table sets per question": {
+    "mean": 1.8826597131681877,
+    "median": 1.0,
+    "max": 10,
+    "min": 1
+   },
+   "share with 2+ table sets": 47.26205997392438,
+   "tables per valid query": {
+    "mean": 2.135174069627851,
+    "median": 2,
+    "max": 5,
+    "min": 1
+   },
+   "tables per table set": {
+    "mean": 2.207063711911357,
+    "median": 2.0,
+    "max": 5,
+    "min": 1
+   },
+   "results per question (SQL questions)": {
+    "mean": 1.8838878016960208,
+    "median": 1,
+    "max": 12,
+    "min": 1
+   },
+   "share with 2+ results (SQL questions)": 47.16242661448141,
+   "results, total (SQL questions)": 2888,
+   "share with a table set in another database": 2.2164276401564535,
+   "results out of reach of the oracle (one SQL per label table set)": 541,
+   "share of results out of reach of the oracle": 18.73268698060942
+  },
+  "labeler": {
+   "labels": 1534,
+   "gold status": {
+    "ok": 1527,
+    "slow": 7
+   },
+   "accepted alternatives": 3854,
+   "accepted per question": 2.51238591916558,
+   "kind": {
+    "other database": 828,
+    "same table": 927,
+    "other table": 2099
+   },
+   "rewritten by": {
+    "llm": 3307,
+    "code": 547
+   },
+   "outcome": {
+    "not answerable": 754,
+    "same rows": 1275,
+    "empty": 279,
+    "different rows": 1530,
+    "failed": 16
+   },
+   "checks": {
+    "decoys_accepted": 3,
+    "decoys": 4262,
+    "unsure": 21,
+    "no_vote": 77,
+    "revoted": 11351,
+    "asked": 113287,
+    "calls": 21570,
+    "gold_items_found": 3803,
+    "gold_items": 4262
+   },
+   "distinct results in the gold database (2+)": 46.023468057366365,
+   "distinct results in the lake (2+)": 47.13168187744459,
+   "underspecified: items not asked": 3.911342894393742,
+   "underspecified: note only": 2.9335071707953064,
+   "underspecified: value form": 26.727509778357238,
+   "underspecified: computation": 58.21382007822686
+  }
+ },
+ {
+  "lake": "Spider",
+  "databases": 166,
+  "tables": 873,
+  "columns": 4497,
+  "questions in labeler": 1034,
+  "gold": {
+   "questions (retrieval)": 1034,
+   "questions (SQL)": 985,
+   "tables per query": {
+    "mean": 1.5135396518375241,
+    "median": 1.0,
+    "max": 4,
+    "min": 1
+   },
+   "share single-table": 55.60928433268859,
+   "databases per query": {
+    "mean": 1,
+    "median": 1.0,
+    "max": 1,
+    "min": 1
+   }
+  },
+  "multi": {
+   "questions (retrieval)": 1034,
+   "questions (SQL)": 1000,
+   "valid queries per question": {
+    "mean": 2.5735009671179885,
+    "median": 2.0,
+    "max": 19,
+    "min": 1
+   },
+   "share with 2+ valid queries": 61.21856866537718,
+   "table sets per question": {
+    "mean": 2.3549323017408126,
+    "median": 2.0,
+    "max": 19,
+    "min": 1
+   },
+   "share with 2+ table sets": 57.25338491295938,
+   "tables per valid query": {
+    "mean": 1.593761743705374,
+    "median": 1,
+    "max": 5,
+    "min": 1
+   },
+   "tables per table set": {
+    "mean": 1.571252566735113,
+    "median": 1,
+    "max": 5,
+    "min": 1
+   },
+   "results per question (SQL questions)": {
+    "mean": 2.214,
+    "median": 2.0,
+    "max": 14,
+    "min": 1
+   },
+   "share with 2+ results (SQL questions)": 52.8,
+   "results, total (SQL questions)": 2214,
+   "share with a table set in another database": 41.005802707930364,
+   "results out of reach of the oracle (one SQL per label table set)": 159,
+   "share of results out of reach of the oracle": 7.181571815718157
+  },
+  "labeler": {
+   "labels": 1034,
+   "gold status": {
+    "ok": 985,
+    "empty": 49
+   },
+   "accepted alternatives": 6467,
+   "accepted per question": 6.254352030947776,
+   "kind": {
+    "other database": 5442,
+    "other table": 554,
+    "copy": 352,
+    "same table": 119
+   },
+   "rewritten by": {
+    "llm": 6423,
+    "code": 44
+   },
+   "outcome": {
+    "same rows": 374,
+    "different rows": 1525,
+    "not answerable": 4019,
+    "empty": 541,
+    "failed": 8
+   },
+   "checks": {
+    "decoys_accepted": 0,
+    "decoys": 2220,
+    "unsure": 88,
+    "no_vote": 206,
+    "revoted": 13254,
+    "asked": 64402,
+    "calls": 17369,
+    "gold_items_found": 2105,
+    "gold_items": 2220
+   },
+   "distinct results in the gold database (2+)": 18.85880077369439,
+   "distinct results in the lake (2+)": 51.06382978723404,
+   "underspecified: items not asked": 1.1605415860735009,
+   "underspecified: note only": 0.0,
+   "underspecified: value form": 3.965183752417795,
+   "underspecified: computation": 35.39651837524178
+  }
+ },
+ {
+  "lake": "MMQA",
+  "databases": 1,
+  "tables": 710,
+  "columns": 3652,
+  "questions in labeler": 1105,
+  "gold": {
+   "questions (retrieval)": 1049,
+   "questions (SQL)": 965,
+   "tables per query": {
+    "mean": 2.207816968541468,
+    "median": 2,
+    "max": 4,
+    "min": 1
+   },
+   "share single-table": 0.3813155386081983,
+   "databases per query": {
+    "mean": 1,
+    "median": 1,
+    "max": 1,
+    "min": 1
+   }
+  },
+  "multi": {
+   "questions (retrieval)": 1049,
+   "questions (SQL)": 993,
+   "valid queries per question": {
+    "mean": 3.7855100095328886,
+    "median": 3,
+    "max": 29,
+    "min": 1
+   },
+   "share with 2+ valid queries": 70.54337464251668,
+   "table sets per question": {
+    "mean": 3.478551000953289,
+    "median": 2,
+    "max": 29,
+    "min": 1
+   },
+   "share with 2+ table sets": 67.302192564347,
+   "tables per valid query": {
+    "mean": 2.4983631327121634,
+    "median": 2,
+    "max": 4,
+    "min": 1
+   },
+   "tables per table set": {
+    "mean": 2.494930117840504,
+    "median": 2,
+    "max": 4,
+    "min": 1
+   },
+   "results per question (SQL questions)": {
+    "mean": 2.515609264853978,
+    "median": 2,
+    "max": 17,
+    "min": 1
+   },
+   "share with 2+ results (SQL questions)": 59.61732124874119,
+   "results, total (SQL questions)": 2498,
+   "share with a table set in another database": 0.0,
+   "results out of reach of the oracle (one SQL per label table set)": 91,
+   "share of results out of reach of the oracle": 3.642914331465172
+  },
+  "labeler": {
+   "labels": 1105,
+   "gold status": {
+    "empty": 79,
+    "ok": 965,
+    "error": 61
+   },
+   "accepted alternatives": 7316,
+   "accepted per question": 6.620814479638009,
+   "kind": {
+    "other table": 7181,
+    "same table": 135
+   },
+   "rewritten by": {
+    "llm": 7275,
+    "code": 41
+   },
+   "outcome": {
+    "empty": 2290,
+    "not answerable": 1928,
+    "different rows": 2181,
+    "same rows": 911,
+    "failed": 6
+   },
+   "checks": {
+    "decoys_accepted": 2,
+    "decoys": 3161,
+    "unsure": 136,
+    "no_vote": 222,
+    "revoted": 15002,
+    "asked": 93648,
+    "calls": 22525,
+    "gold_items_found": 2797,
+    "gold_items": 3161
+   },
+   "distinct results in the gold database (2+)": 53.574660633484164,
+   "distinct results in the lake (2+)": 53.574660633484164,
+   "underspecified: items not asked": 2.6244343891402715,
+   "underspecified: note only": 0.0,
+   "underspecified: value form": 10.407239819004525,
+   "underspecified: computation": 49.95475113122172
+  }
+ }
+]

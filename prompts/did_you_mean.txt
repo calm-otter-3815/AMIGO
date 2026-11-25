@@ -1,0 +1,94 @@
+A person asked a question about a data lake. One piece of what they asked fits
+nothing in the tables kept for the question, so code has gathered, from the whole
+lake, the tables and columns that sit nearest to it: first the columns that store its
+value and the tables its value names, then the ones nearest in meaning. Your job is
+to say which of those a person could plausibly have meant by that piece, and to word
+the short question that asks them which one.
+
+Each candidate line is: the path | what it holds. A table's line starts with "table"
+and its row count. A line that ends "(outside the tables kept so far)" is in the lake
+but was not among the tables kept for this question.
+
+How to choose:
+
+- Keep at most four candidates, nearest meaning first. Fewer is better than four
+  weak ones.
+- A table fits when each of its rows is the thing the piece names. A column fits when
+  it names the piece or stores its value. A line that says the column stores the
+  piece's value is evidence from the data: keep it unless it clearly means something
+  else.
+- Keep a candidate only if a person writing that piece could have meant it. A path
+  that merely shares a word with the piece is not a match.
+- If nothing on the list could be what they meant, return an empty list of
+  options. Inventing a near miss sends them down the wrong path.
+- Copy each path exactly as it is printed below, without the word table. Never name
+  a path that is not on the list, and never name one twice.
+
+How to word it:
+
+- The question is one short sentence in plain words, about what the person meant,
+  never about columns, tables or interpretations. No jargon, no SQL.
+- Each label is at most 60 characters, and says what that choice means in the
+  person's terms, not the path's name. Two labels are never the same.
+
+Output Format, JSON and nothing else:
+
+{
+  "question": "one short sentence",
+  "options": [
+    {"column": "the path exactly as printed", "label": "at most 60 characters"}
+  ]
+}
+
+Example 1
+Question: Which wines from the 2018 vintage scored above 90?
+The piece no kept table holds: wine's grape
+Candidates:
+  cellar.wine.variety | the grape variety the wine is pressed from
+  cellar.wine.blend_note | free text describing how a blended wine was put together
+  cellar.wine.region | the growing region printed on the label
+  cellar.producer.name | the estate that made the wine
+
+{
+  "question": "Do you mean the kind of grape, or how the wine was blended?",
+  "options": [
+    {"column": "cellar.wine.variety", "label": "the kind of grape"},
+    {"column": "cellar.wine.blend_note", "label": "how the wine was blended"}
+  ]
+}
+
+Example 2
+Question: Which recipes are the hardest to cook and take the longest?
+The piece no kept table holds: recipe's difficulty
+Candidates:
+  kitchen.recipe.prep_minutes | how long the ingredients take to prepare
+  kitchen.recipe.servings | how many people the recipe feeds
+  kitchen.recipe.calories | energy per serving
+
+{
+  "question": "Nothing here records how hard a recipe is. Should we drop that part?",
+  "options": []
+}
+
+Example 3
+Question: Which customers sent a parcel by express last month?
+The piece no kept table holds: shipping speed = "express"
+Candidates:
+  post.express_parcel | table, 812 rows: one row per parcel sent by express delivery (outside the tables kept so far)
+  post.parcel.service | the delivery service: standard, express or economy
+  post.parcel.weight_kg | the parcel's weight in kilograms
+
+{
+  "question": "Do you mean parcels on the express list, or parcels marked as express service?",
+  "options": [
+    {"column": "post.express_parcel", "label": "parcels on the express delivery list"},
+    {"column": "post.parcel.service", "label": "parcels marked as express service"}
+  ]
+}
+
+Question: $question
+The piece no kept table holds: $written
+Candidates:
+$candidates
+
+Return an answer only in this exact Output Format.

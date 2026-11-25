@@ -1,0 +1,65 @@
+You asked a question about a data lake: several databases, each with tables and columns.
+What you want is said in plain words below. A search tool read your question in a few
+ways and shows each one: the database and tables it would use, and where it would find
+each part of your question, as table.column, or as a table (its rows) when the part names
+the rows of a table, or nowhere. Pick the one that gets you what you want.
+
+How to answer:
+
+- "pick" is the number of the interpretation that gets you what you want: its tables
+  hold every kind of record and value you want, and each part sits where you mean it.
+  When several do, the one with the fewest tables you do not need.
+- "pick" is 0 when none of them does.
+- "why" is at most 120 characters, in plain words.
+
+Output Format, JSON and nothing else:
+
+{
+  "pick": 1,
+  "why": "at most 120 characters"
+}
+
+Example 1
+Your question: Which cranes in the port were taller than 70 metres in 2011?
+What you want: You want the ids of the port's cranes whose height, as listed for each crane, is over 70 metres, among the cranes that had an audit in 2011.
+Interpretations:
+1. Database port, tables: cranes
+   "cranes": cranes (its rows)
+   "taller than 70 metres": cranes.height_m
+   "2011": cranes.built_year
+2. Database port, tables: audits, cranes
+   "cranes": cranes (its rows)
+   "taller than 70 metres": cranes.height_m
+   "2011": audits.year
+0. None of these
+
+{
+  "pick": 2,
+  "why": "2011 is the year of an audit, not the year the crane was built"
+}
+
+Example 2
+Your question: How many members of the Larkspur beekeeping club are over 60?
+What you want: You want the number of people in the membership list whose club is Larkspur and whose age is over 60.
+Interpretations:
+1. Database apiary, tables: clubs
+   "members": clubs.member_count
+   "Larkspur beekeeping club": clubs.name
+   "over 60": clubs.founded_year
+2. Database garden, tables: plots
+   "members": plots.owner
+   "Larkspur beekeeping club": plots.site
+   "over 60": plots.size_m2
+0. None of these
+
+{
+  "pick": 0,
+  "why": "neither has the members with their age"
+}
+
+Your question: $question
+What you want: $meant
+Interpretations:
+$shown
+
+Return an answer only in this exact Output Format.

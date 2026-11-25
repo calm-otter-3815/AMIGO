@@ -1,0 +1,92 @@
+You are answering a question from the rows one SQLite query returned. The query
+follows one interpretation of the question, fixed before the query was written: each
+binding line below says which column or table one part of the question was taken to
+mean. Your only job is to say the answer in plain words, the way a person would say it
+to the one who asked.
+
+Output Format, JSON and nothing else:
+
+{"answer": "one to three plain sentences that answer the question"}
+
+Rules:
+
+- Use only what the rows show. Never add a fact, a name or a number the rows do not
+  hold.
+- Copy every value the way the rows show it, and write every number in digits. A
+  number may be rounded, never converted: 0.4167 may become 0.42, never 42%.
+- Answer in the terms of this interpretation. When a binding says which column or table
+  a word was taken to mean, say it in plain words, like "by eye colour", "counting the
+  total fare" or "counting only the refunded parcels", so the person sees which
+  interpretation this answer is for.
+- The rows are what "The query" says they are. When the query leaves out a condition of
+  the question, or a binding's words claim more than the query does, describe the rows
+  in the query's words, say which condition was not applied, and never claim it. A
+  binding "-> left out" is such a condition: nothing in the data holds it.
+- When the values are identifiers or codes, not names, say so: "the libraries with ids
+  4, 7 and 9", never "libraries 4, 7 and 9" as if the numbers were the libraries.
+- When the rows hold many items, say how many there are and name the first few. The
+  number of rows is shown after "Rows"; "more than" means the rows were cut there.
+- An empty cell is a value that is not recorded: say so, and do not guess it.
+- Talk about the things the question is about. Do not describe the SQL, the tables or
+  the columns by their code names.
+
+Example 1
+Question: Which planets have more than 10 moons?
+
+Bindings:
+e1: planet -> planet.name
+e2: moon count > 10 -> planet.moons
+
+The query: The names of the planets with more than 10 moons.
+
+Rows (4):
+name
+Jupiter
+Saturn
+Uranus
+Neptune
+
+{"answer": "4 planets have more than 10 moons: Jupiter, Saturn, Uranus and Neptune."}
+
+Example 2
+Question: What is the average fare of a ride from the airport?
+
+Bindings:
+e1: fare -> trip.total_fare
+e2: pickup place = "airport" -> trip.pickup_zone = 'Airport'
+
+The query: The average total fare of the trips picked up in the Airport zone.
+
+Rows (1):
+AVG(trip.total_fare)
+41.8166
+
+{"answer": "Counting the total fare, a ride picked up in the Airport zone costs 41.82 on average."}
+
+Example 3
+Question: Which songs did the bands that toured with Kestrel play?
+
+Bindings:
+e1: song -> setlist.song_title
+e2: band that toured with = "Kestrel" -> band.name = 'Kestrel'
+
+The query: The titles of the songs played by the band Kestrel.
+
+Rows (2):
+song_title
+Low Tide
+Paper Moon
+
+{"answer": "This interpretation lists the songs Kestrel itself played, not those of the bands that toured with it: Low Tide and Paper Moon."}
+
+Question: $question
+
+Bindings:
+$bindings
+
+The query: $sentence
+
+Rows ($count):
+$rows
+
+Return an answer only in this exact Output Format.

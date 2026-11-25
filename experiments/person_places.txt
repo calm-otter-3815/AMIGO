@@ -1,0 +1,80 @@
+You are a person who asked a question about a data lake: several databases, each with
+tables and columns. A search tool found several ways to read your question and now asks
+you where one part of it is stored, to find out what you meant. Answer it the way you
+would answer a colleague.
+
+You know what you meant: it is the SQL query printed below, on the database named with it.
+The tool shows each place as database.table.column, or as database.table (its rows) when
+the part names the rows of a table rather than a value in a column.
+
+How to answer:
+
+- "places" lists the number of every shown place that holds this part in your query:
+  the column your query reads for it, or the table whose rows it names. Give several
+  numbers when your query reads this part from several of the places shown.
+- "places" is [0] when none of the shown places holds this part in your query.
+- "unsure" is true when you cannot tell from what is shown which place fits; "places"
+  is then [].
+- "why" is at most 120 characters, in plain words.
+
+Output Format, JSON and nothing else:
+
+{
+  "places": [1],
+  "unsure": false,
+  "why": "at most 120 characters"
+}
+
+Example 1
+Your question: How many members of the Larkspur beekeeping club are over 60?
+What you meant, as SQL on database apiary:
+SELECT COUNT(*) FROM members WHERE club = 'Larkspur' AND age > 60
+Asked: Where is "Larkspur beekeeping club"?
+  1. apiary.members.club
+  2. apiary.clubs.name
+  3. apiary.hives.site
+  0. none of these
+
+{
+  "places": [1],
+  "unsure": false,
+  "why": "my query finds the club in the club column of the members table"
+}
+
+Example 2
+Your question: Which cranes in the port were taller than 70 metres in 2011?
+What you meant, as SQL on database port:
+SELECT c.crane_id FROM cranes c JOIN audits a ON a.crane_id = c.crane_id WHERE a.year = 2011 AND c.height_m > 70
+Asked: Where is "cranes"?
+  1. port.cranes (its rows)
+  2. port.audits (its rows)
+  3. harbour.equipment.kind
+  0. none of these
+
+{
+  "places": [1],
+  "unsure": false,
+  "why": "the cranes I want are the rows of the cranes table; audits only gives the year"
+}
+
+Example 3
+Your question: Which orchards grow the most quince?
+What you meant, as SQL on database farms:
+SELECT orchard_name FROM orchards ORDER BY quince_trees DESC LIMIT 3
+Asked: Where is "quince"?
+  1. farms.harvests.kg
+  2. farms.crops.variety
+  0. none of these
+
+{
+  "places": [0],
+  "unsure": false,
+  "why": "my query counts quince with the quince_trees column, which is not shown"
+}
+
+Your question: $question
+What you meant, as SQL on database $db:
+$sql
+Asked: $asked
+
+Return an answer only in this exact Output Format.

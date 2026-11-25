@@ -1,0 +1,51 @@
+We are working on text-to-SQL over a data lake. A user asks a question in natural
+language. Below are sets of tables that could be used to answer it.
+
+Keep the sets of tables that make sense for answering this question. If more than one
+set makes sense, keep each one of them, since the question can have more than one
+valid meaning. If none does, keep none.
+
+Example 1
+Question: Which customers bought a red bike?
+Set 1
+- shop.customer: one row per customer
+- shop.purchase: one row per purchase, with the customer and the product bought
+- shop.product: one row per product, with its color
+Set 2
+- shop.customer: one row per customer
+- shop.product: one row per product, with its color
+Answer: {"keep": [1]}
+Why: only shop.purchase records who bought what. Without it, set 2 cannot connect
+customers to bikes.
+
+Example 2
+Question: What is the population of Lyon?
+Set 1
+- geo.city: one row per city, with its population
+Set 2
+- census_2020.town: one row per town, with the people counted in 2020
+Set 3
+- geo.city: one row per city, with its population
+- geo.region: one row per region, with its population
+Answer: {"keep": [1, 2]}
+Why: the population of a city is kept in two databases, so sets 1 and 2 both make
+sense. Set 3 adds the region, which the question does not ask about.
+
+Example 3
+Question: How many employees are there?
+Set 1
+- hr.employee: one row per employee
+Set 2
+- hr.employee: one row per employee
+- hr.department: one row per department
+Answer: {"keep": [1]}
+Why: the question only needs the employees. The department table adds nothing to it.
+
+Question: $question
+
+$sets
+
+Output Format, JSON only:
+{"keep": [<numbers of the sets that make sense>, ...]}
+
+Return an answer only in this exact Output Format.

@@ -1,0 +1,78 @@
+Break a question about a database into the things it talks about. You have not
+seen the database.
+
+Each entity is one attribute the question asks for or filters on, named in your
+own words the way a database would store it. If the question gives a concrete
+value for that attribute, attach it as a literal: text as the bare value only, so
+"premium membership" gives the text "premium" and never the whole phrase; a number
+without units or comparison words, a date as a range of days. "since X" fills only
+date_start and "before X" fills only date_end. A literal has one kind and only that
+kind's fields. Otherwise the literal is null.
+
+A name standing on its own is a value too, even when the question never says
+what it names (a person, a place, a product, a character). Give it its own
+entity: the attribute that would store that name, in your own words, with the
+name as a text literal. A title before a person's name is not part of the name:
+"Dr. Ines Varga" gives the text "Ines Varga". A value never goes inside an
+attribute's words.
+
+Example 1
+Question: How many books written by Chinua Achebe were borrowed more than 5 times in 2023?
+{"entities": [
+  {"attribute": "book", "literal": null},
+  {"attribute": "book's author", "literal": {"kind": "text", "text": "Chinua Achebe", "number": null, "date_start": null, "date_end": null}},
+  {"attribute": "number of times a book was borrowed", "literal": {"kind": "number", "text": null, "number": 5, "date_start": null, "date_end": null}},
+  {"attribute": "borrowing date", "literal": {"kind": "date", "text": null, "number": null, "date_start": "2023-01-01", "date_end": "2023-12-31"}}
+]}
+
+Example 2
+Question: Which vessels left the port of Rotterdam on 14 March 2022?
+{"entities": [
+  {"attribute": "vessel", "literal": null},
+  {"attribute": "departure port", "literal": {"kind": "text", "text": "Rotterdam", "number": null, "date_start": null, "date_end": null}},
+  {"attribute": "departure date", "literal": {"kind": "date", "text": null, "number": null, "date_start": "2022-03-14", "date_end": "2022-03-14"}}
+]}
+
+Example 3
+Question: List the customers with a premium membership who made at least one return since October 2021.
+{"entities": [
+  {"attribute": "customer", "literal": null},
+  {"attribute": "customer's membership level", "literal": {"kind": "text", "text": "premium", "number": null, "date_start": null, "date_end": null}},
+  {"attribute": "customer's returns", "literal": null},
+  {"attribute": "return date", "literal": {"kind": "date", "text": null, "number": null, "date_start": "2021-10-01", "date_end": null}}
+]}
+
+Example 4
+Question: Who directed the film that won the Golden Camera award?
+{"entities": [
+  {"attribute": "film's director", "literal": null},
+  {"attribute": "award won by the film", "literal": {"kind": "text", "text": "Golden Camera", "number": null, "date_start": null, "date_end": null}}
+]}
+
+Example 5
+Question: How fast can the Kestrel K7 go?
+{"entities": [
+  {"attribute": "top speed", "literal": null},
+  {"attribute": "vehicle's name", "literal": {"kind": "text", "text": "Kestrel K7", "number": null, "date_start": null, "date_end": null}}
+]}
+
+Example 6
+Question: When was Mira Okafor hired?
+{"entities": [
+  {"attribute": "hire date", "literal": null},
+  {"attribute": "employee's name", "literal": {"kind": "text", "text": "Mira Okafor", "number": null, "date_start": null, "date_end": null}}
+]}
+
+Output format, JSON only:
+{"entities": [
+  {"attribute": "the attribute in your own words",
+   "literal": null
+           or {"kind": "text", "text": "the value", "number": null, "date_start": null, "date_end": null}
+           or {"kind": "number", "text": null, "number": the number, "date_start": null, "date_end": null}
+           or {"kind": "date", "text": null, "number": null, "date_start": "YYYY-MM-DD or null", "date_end": "YYYY-MM-DD or null"}}
+]}
+kind is "text", "number" or "date"; only that kind's field(s) are filled, the other fields are null; a date range may leave date_start or date_end null.
+
+Question: $question
+
+Return an answer only in this exact Output Format.

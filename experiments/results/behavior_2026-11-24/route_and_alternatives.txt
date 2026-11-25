@@ -1,0 +1,5 @@
+bird_dev Route+SQL: routed to the labeled database on 94.9% of 1534 questions; CR 85.9 when right, 0.0 when wrong
+spider_dev Route+SQL: routed to the labeled database on 69.0% of 1034 questions; CR 97.8 when right, 0.0 when wrong
+bird_dev: CORE-T holds the labeled set and AMIGO conservative does not on 178 questions; AMIGO conservative's set is another valid table set on 64 of them (36.0%)
+spider_dev: CORE-T holds the labeled set and AMIGO conservative does not on 98 questions; AMIGO conservative's set is another valid table set on 47 of them (48.0%)
+mmqa: CORE-T holds the labeled set and AMIGO conservative does not on 194 questions; AMIGO conservative's set is another valid table set on 31 of them (16.0%)

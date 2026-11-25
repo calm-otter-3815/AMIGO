@@ -1,0 +1,92 @@
+We are working on text-to-SQL over a data lake. A user asks a question in natural
+language, and we need to find the columns that can answer it. The question has been
+split into concepts. For each concept, we found some potentially relevant columns in
+the data lake.
+
+For each concept, keep each column that is relevant to it. Decide from the column's
+name, its table's name, its type, its description and its sample values. If no
+column is relevant, keep none.
+
+Example 1
+Question: How many female beekeepers are there?
+Concept 1: beekeepers
+- apiary.beekeeper.keeper_id (integer): the beekeeper's id. Sample values: 1, 2, 3
+- garden_club.member.member_id (integer): the club member's id. Sample values: 1, 2, 3
+Concept 2: gender = "female"
+- apiary.beekeeper.sex (text): the beekeeper's sex. Sample values: F, M
+- garden_club.member.gender (text): the club member's gender. Sample values: female, male
+Answer: {"1": ["apiary.beekeeper.keeper_id"], "2": ["apiary.beekeeper.sex"]}
+Why: "female" is stored as F in beekeeper.sex. garden_club.member.gender holds the
+word "female", but it describes club members, not beekeepers.
+
+Example 2
+Question: What are the observers' addresses?
+Concept 1: observer's address
+- astronomy.observer.home_address (text): where the observer lives. Sample values: 12 Elm Rd, 4 Quay St
+- astronomy.observer.mail_address (text): where the observer gets mail. Sample values: PO Box 88, 4 Quay St
+- astronomy.observatory.address (text): where the observatory is. Sample values: 1 Ridge Way
+Answer: {"1": ["astronomy.observer.home_address", "astronomy.observer.mail_address"]}
+Why: "address" could mean the home address or the mail address. Both are relevant,
+so each one is kept. The observatory's address is not the observer's.
+
+Example 3
+Question: What is the average grade over all exam results?
+Concept 1: average grade
+- school.exam_result.grade (real): the grade the student got on this exam. Sample values: 12.5, 17.0, 9.0
+- school.student.final_grade (real): the student's overall grade for the year. Sample values: 14.2, 11.8
+Concept 2: exam results
+- school.exam_result.student_id (integer): the student who took the exam. Sample values: 3, 3, 8
+- school.exam_result.exam_id (integer): the exam that was taken. Sample values: 1, 2, 1
+- school.exam.exam_id (integer): the exam's id. Sample values: 1, 2, 3
+Answer: {"1": ["school.exam_result.grade"], "2": ["school.exam_result.student_id", "school.exam_result.exam_id"]}
+Why: the grades to average are those of single exam results. exam_result has no id
+of its own: one result is one student on one exam, so student_id and exam_id
+together stand for the results. school.exam.exam_id lists exams, not results.
+
+Example 4
+Question: Which sailors older than 60 hold the rank of captain?
+Concept 1: sailors
+- fleet.sailor.sailor_id (integer): the sailor's id. Sample values: 1, 2, 3
+Concept 2: age = 60
+- fleet.sailor.birth_date (date): the day the sailor was born. Sample values: 1958-02-11, 1990-07-30
+- fleet.sailor.years_at_sea (integer): years the sailor has worked at sea. Sample values: 4, 31, 62
+Concept 3: rank = "captain"
+- fleet.ship.ship_class (text): the kind of ship. Sample values: tanker, ferry, trawler
+- fleet.port.rank_order (integer): the port's size rank. Sample values: 1, 2, 3
+Answer: {"1": ["fleet.sailor.sailor_id"], "2": ["fleet.sailor.birth_date"], "3": []}
+Why: age is worked out from the birth date. Years at sea is not age, even when the
+numbers look alike. No column stores a sailor's rank, so concept 3 keeps none.
+
+Example 5
+Question: Which pets have brown fur?
+Concept 1: pets
+- vet.pet.pet_id (integer): the pet's id. Sample values: 1, 2, 3
+Concept 2: fur color = "brown"
+- vet.pet.fur_color_id (integer): the pet's fur color, as a color number. Sample values: 2, 5, 2
+- vet.color.color_name (text): the color's name. Sample values: brown, black, white
+- vet.owner.hair_color (text): the owner's hair color. Sample values: brown, blond
+Answer: {"1": ["vet.pet.pet_id"], "2": ["vet.pet.fur_color_id", "vet.color.color_name"]}
+Why: pet.fur_color_id stores each pet's fur color as a number, and color.color_name
+holds the word "brown". Both are relevant, so each one is kept. owner.hair_color
+holds "brown", but it describes owners, not pets.
+
+Example 6
+Question: Which delivery companies have more than 50 drivers?
+Concept 1: delivery companies
+- logistics.company.company_id (integer): the company's id. Sample values: 1, 2, 3
+Concept 2: number of drivers = 50
+- logistics.driver.driver_id (integer): the driver's id. Sample values: 10, 11, 12
+- logistics.company.fleet_size (integer): the number of trucks the company owns. Sample values: 12, 40, 8
+Answer: {"1": ["logistics.company.company_id"], "2": ["logistics.driver.driver_id"]}
+Why: no column stores the number of drivers, but it is found by counting the rows of
+logistics.driver, so driver.driver_id is relevant. fleet_size counts trucks, not
+drivers.
+
+Question: $question
+
+$candidates
+
+Output Format, JSON only:
+{"<concept number>": ["<database>.<table>.<column>", ...]}
+
+Return an answer only in this exact Output Format.

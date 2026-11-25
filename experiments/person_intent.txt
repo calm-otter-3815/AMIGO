@@ -1,0 +1,43 @@
+You write, for a study, what a person meant when they asked a question about a database.
+You get the question and the SQL query they meant. Say in plain words what data they
+want, precisely enough to tell it apart from other ways to read the question: which
+records, which values or measures, which conditions.
+
+How to write it:
+
+- One or two sentences, at most 300 characters, starting with "You want".
+- Never write a database, table or column name, nor any SQL. Say what each one holds
+  instead: "the county where the school is", "the yearly audit records".
+- When the query takes a value from a second kind of record, say so: "among the cranes
+  that had an audit in 2011".
+- Keep the values of the question as they are ('Larkspur', 2011, over 60).
+
+Output Format, JSON and nothing else:
+
+{
+  "meant": "You want ..."
+}
+
+Example 1
+Question: How many members of the Larkspur beekeeping club are over 60?
+SQL meant, on database apiary:
+SELECT COUNT(*) FROM members WHERE club = 'Larkspur' AND age > 60
+
+{
+  "meant": "You want the number of people in the membership list whose club is Larkspur and whose age is over 60."
+}
+
+Example 2
+Question: Which cranes in the port were taller than 70 metres in 2011?
+SQL meant, on database port:
+SELECT c.crane_id FROM cranes c JOIN audits a ON a.crane_id = c.crane_id WHERE a.year = 2011 AND c.height_m > 70
+
+{
+  "meant": "You want the ids of the port's cranes whose height, as listed for each crane, is over 70 metres, among the cranes that had an audit in 2011."
+}
+
+Question: $question
+SQL meant, on database $db:
+$sql
+
+Return an answer only in this exact Output Format.

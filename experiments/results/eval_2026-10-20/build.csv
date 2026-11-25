@@ -1,0 +1,53 @@
+lake,step,seconds,llm_calls,input_tokens,output_tokens,load
+bird_dev,schema,19.4,0,0,0,exclusive
+bird_dev,profile,402.1,0,0,0,exclusive
+bird_dev,describe,124.7,75,51568,86357,exclusive
+bird_dev,names,30.3,1,1738,4546,exclusive
+bird_dev,index,131.0,1,318,3334,exclusive
+bird_dev,words,91.7,0,0,0,exclusive
+bird_dev,links,97.3,0,0,0,exclusive
+bird_dev,more_links,212.2,0,0,0,exclusive
+bird_dev,judged_links,412.1,180,266887,116085,exclusive
+bird_dev,roles,0.0,0,0,0,exclusive
+bird_dev,embed,82.2,1,1056,647,exclusive
+bird_dev,prep bl_core_t,292.566,76,46736,31313,exclusive
+bird_dev,prep bl_crush4sql_b100,6.046,1,572,702,exclusive
+bird_dev,prep bl_dense_k5,0.0,0,0,0,exclusive
+bird_dev,prep bl_jar_k3,30.945,1,563,1093,exclusive
+bird_dev,prep bl_murre_k5,27.961,1,991,366,exclusive
+bird_dev,prep bl_route_sql,0.0,1,4628,260,exclusive
+spider_dev,schema,7.6,0,0,0,exclusive
+spider_dev,profile,60.9,0,0,0,exclusive
+spider_dev,describe,710.7,872,391632,752197,exclusive
+spider_dev,names,23.9,1,1394,2458,exclusive
+spider_dev,index,9.6,1,447,2782,exclusive
+spider_dev,words,4.1,0,0,0,exclusive
+spider_dev,links,7.6,0,0,0,exclusive
+spider_dev,more_links,16.4,0,0,0,exclusive
+spider_dev,judged_links,533.8,205,234538,132379,exclusive
+spider_dev,roles,0.0,0,0,0,exclusive
+spider_dev,embed,253.2,0,0,0,exclusive
+spider_dev,prep bl_core_t,610.709,874,235746,310824,exclusive
+spider_dev,prep bl_crush4sql_b100,39.051,1,558,130,exclusive
+spider_dev,prep bl_dense_k5,0.0,0,0,0,exclusive
+spider_dev,prep bl_jar_k3,69.986,1,549,196,exclusive
+spider_dev,prep bl_murre_k5,22.419,1,807,117,exclusive
+spider_dev,prep bl_route_sql,0.0,1,1381,67,exclusive
+mmqa,schema,1.6,0,0,0,exclusive
+mmqa,profile,34.5,0,0,0,exclusive
+mmqa,describe,580.3,709,320659,614087,exclusive
+mmqa,names,24.1,1,1119,1990,exclusive
+mmqa,index,4.6,1,417,2764,exclusive
+mmqa,words,2.1,0,0,0,exclusive
+mmqa,links,11.8,0,0,0,exclusive
+mmqa,more_links,56.6,0,0,0,exclusive
+mmqa,judged_links,1467.8,890,1361044,714925,exclusive
+mmqa,roles,0.0,0,0,0,exclusive
+mmqa,embed,227.0,1,1754,791,exclusive
+mmqa,prep bl_core_t,528.752,711,202988,255089,exclusive
+mmqa,prep bl_crush4sql_b100,26.457,1,574,832,exclusive
+mmqa,prep bl_dense_k5,0.0,0,0,0,exclusive
+mmqa,prep bl_jar_k3,54.076,1,565,596,exclusive
+mmqa,prep bl_murre_k5,17.824,6,4935,4236,exclusive
+taco_us,schema,89.6,0,0,0,shared
+taco_us,profile,3727.5,0,0,0,shared

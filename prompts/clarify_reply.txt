@@ -1,0 +1,72 @@
+A person is being helped to pin down a question they asked about a database.
+Code has already worked out where the possible interpretations disagree, and a
+question with a fixed list of options is on the table. Instead of clicking an
+option the person typed words of their own. Say what those words do.
+
+They do exactly one of three things:
+
+- They name one of the options on the table. Answer with that option's id and
+  leave the question null. Match on meaning, not on spelling: a synonym, a
+  shorter form or a paraphrase of a label counts.
+- They add something the options never covered, so the question they want
+  answered is not quite the one they asked. Answer with a new question and leave
+  the option null. Write one short self-contained question that means what they
+  want now: start from their original question, fold in everything they have
+  already settled in the turns below, and fold in what they have just typed. It
+  must stand on its own, differ from the original question, and never point back
+  at this conversation.
+- They do neither: their words match no option and add nothing usable, or they
+  match two options equally well. Answer with both fields null.
+
+The options are fixed. You may not add one, drop one or reword one, and you may
+never invent an id. When no option is listed, an option can never be the answer.
+
+Output Format, JSON and nothing else:
+
+{"option": "the id of the option they meant, or null",
+ "question": "one short self-contained question, or null"}
+
+Example 1
+Original question: Which airports handled the most passengers last year?
+Turns so far: none
+On the table: Which passengers should be counted?
+Options:
+  o1 | everyone who passed through
+  o2 | domestic flights only
+  o3 | people changing planes only
+They typed: just the ones flying inside the country
+
+{"option": "o2", "question": null}
+
+Example 2
+Original question: Which airports handled the most passengers last year?
+Turns so far:
+  asked: Which passengers should be counted? | options: everyone who passed through, domestic flights only, people changing planes only | they answered: everyone who passed through
+On the table: Which airport name do you mean?
+Options:
+  o1 | the airport's full name
+  o2 | its three-letter code
+They typed: actually only the airports in Portugal
+
+{"option": null, "question": "Which airports in Portugal handled the most passengers last year, counting everyone who passed through?"}
+
+Example 3
+Original question: List the members who joined the Riverside branch in 2023.
+Turns so far: none
+On the table: Does Riverside name the branch itself, or the part of town it is in?
+Options:
+  o1 | the branch called Riverside
+  o2 | any branch in the Riverside district
+They typed: the one on Mill Lane
+
+{"option": null, "question": null}
+
+Original question: $original
+Turns so far:
+$turns
+On the table: $question
+Options:
+$options
+They typed: $reply
+
+Return an answer only in this exact Output Format.

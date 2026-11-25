@@ -1,0 +1,216 @@
+lake,method,setting,step,n,mean_s,median_s,p90_s,flagged,prefix_hit_share
+bird_dev,dense,any k,search,30,0.046,0.044,0.052,0,
+bird_dev,dense,any k,total,30,0.046,0.044,0.052,0,
+bird_dev,dense,any k,llm calls per question,30,0.0,,,0,
+bird_dev,bm25,any k,setup,30,0.0,0.0,0.0,0,
+bird_dev,bm25,any k,search,30,0.0,0.0,0.0,0,
+bird_dev,bm25,any k,total,30,0.0,0.0,0.0,0,
+bird_dev,bm25,any k,llm calls per question,30,0.0,,,0,
+bird_dev,hybrid,any k,setup,30,0.0,0.0,0.0,0,0.0346
+bird_dev,hybrid,any k,search,30,0.045,0.043,0.053,0,0.0346
+bird_dev,hybrid,any k,fuse,30,0.0,0.0,0.0,0,0.0346
+bird_dev,hybrid,any k,total,30,0.046,0.044,0.053,0,0.0346
+bird_dev,hybrid,any k,llm calls per question,30,0.0,,,0,0.0346
+bird_dev,jar,k1,setup,30,0.002,0.0,0.0,0,0.0346
+bird_dev,jar,k1,llm decompose,30,4.581,4.167,7.623,0,0.0346
+bird_dev,jar,k1,search,30,0.128,0.098,0.154,0,0.0346
+bird_dev,jar,k1,joins,30,0.174,0.116,0.422,0,0.0346
+bird_dev,jar,k1,choose,30,0.0,0.0,0.0,0,0.0346
+bird_dev,jar,k1,total,30,4.885,4.772,7.973,0,0.0346
+bird_dev,jar,k1,llm calls per question,30,1.4,,,0,0.0346
+bird_dev,jar,k3,setup,30,0.0,0.0,0.0,0,0.07
+bird_dev,jar,k3,llm decompose,30,4.628,4.078,7.77,0,0.07
+bird_dev,jar,k3,search,30,0.1,0.089,0.129,0,0.07
+bird_dev,jar,k3,joins,30,0.158,0.106,0.419,0,0.07
+bird_dev,jar,k3,choose,30,0.007,0.006,0.008,0,0.07
+bird_dev,jar,k3,total,30,4.892,4.382,8.006,0,0.07
+bird_dev,jar,k3,llm calls per question,30,1.1,,,0,0.07
+bird_dev,jar,k5,setup,30,0.0,0.0,0.0,0,0.0703
+bird_dev,jar,k5,llm decompose,30,4.733,4.517,7.424,0,0.0703
+bird_dev,jar,k5,search,30,0.104,0.091,0.127,0,0.0703
+bird_dev,jar,k5,joins,30,0.148,0.107,0.337,0,0.0703
+bird_dev,jar,k5,choose,30,0.173,0.169,0.194,0,0.0703
+bird_dev,jar,k5,total,30,5.158,4.867,7.822,0,0.0703
+bird_dev,jar,k5,llm calls per question,30,1.133,,,0,0.0703
+bird_dev,greedy_jar,any k,setup,30,0.0,0.0,0.0,0,0.0707
+bird_dev,greedy_jar,any k,llm decompose,30,4.757,5.047,7.112,0,0.0707
+bird_dev,greedy_jar,any k,search,30,0.101,0.09,0.125,0,0.0707
+bird_dev,greedy_jar,any k,joins,30,0.154,0.115,0.345,0,0.0707
+bird_dev,greedy_jar,any k,choose,30,0.0,0.0,0.0,0,0.0707
+bird_dev,greedy_jar,any k,total,30,5.013,5.424,7.317,0,0.0707
+bird_dev,greedy_jar,any k,llm calls per question,30,1.133,,,0,0.0707
+bird_dev,crush4sql,any k,setup,30,0.0,0.0,0.0,0,0.0711
+bird_dev,crush4sql,any k,llm schema,30,3.718,3.416,5.657,0,0.0711
+bird_dev,crush4sql,any k,search,30,0.069,0.061,0.105,0,0.0711
+bird_dev,crush4sql,any k,choose,30,0.002,0.002,0.002,0,0.0711
+bird_dev,crush4sql,any k,total,30,3.79,3.468,5.741,0,0.0711
+bird_dev,crush4sql,any k,llm calls per question,30,1.033,,,0,0.0711
+bird_dev,murre,any k,setup,30,0.0,0.0,0.0,0,0.071
+bird_dev,murre,any k,search,30,0.148,0.057,0.353,0,0.071
+bird_dev,murre,any k,llm removal,30,18.392,3.467,54.767,0,0.071
+bird_dev,murre,any k,rank,30,0.0,0.0,0.0,0,0.071
+bird_dev,murre,any k,total,30,18.541,3.523,54.993,0,0.071
+bird_dev,murre,any k,llm calls per question,30,3.967,,,0,0.071
+bird_dev,core_t,-,setup,30,0.001,0.0,0.0,0,0.072
+bird_dev,core_t,-,search,30,0.05,0.049,0.053,0,0.072
+bird_dev,core_t,-,compat,30,0.0,0.0,0.0,0,0.072
+bird_dev,core_t,-,llm select,30,23.322,23.046,31.426,0,0.072
+bird_dev,core_t,-,adjust,30,0.0,0.0,0.0,0,0.072
+bird_dev,core_t,-,total,30,23.372,23.097,31.477,0,0.072
+bird_dev,core_t,-,llm calls per question,30,1.167,,,0,0.072
+bird_dev,route_sql,-,route,30,0.059,0.051,0.069,0,0.0799
+bird_dev,route_sql,-,llm sql,30,5.785,5.197,9.544,0,0.0799
+bird_dev,route_sql,-,read sql,30,0.005,0.003,0.013,0,0.0799
+bird_dev,route_sql,-,total,30,5.849,5.252,9.61,0,0.0799
+bird_dev,route_sql,-,llm calls per question,30,1.1,,,0,0.0799
+bird_dev,full_schema,-,setup,30,0.0,0.0,0.0,0,0.0598
+bird_dev,full_schema,-,llm choose,30,4.236,3.712,7.262,0,0.0598
+bird_dev,full_schema,-,total,30,4.236,3.712,7.262,0,0.0598
+bird_dev,full_schema,-,llm calls per question,30,1.067,,,0,0.0598
+bird_dev,amigo,default,llm split,30,9.359,8.541,14.786,0,0.0244
+bird_dev,amigo,default,lookups,30,14.977,3.169,51.16,0,0.0244
+bird_dev,amigo,default,places,30,0.195,0.182,0.324,0,0.0244
+bird_dev,amigo,default,llm judge places,30,53.256,45.171,95.289,0,0.0244
+bird_dev,amigo,default,search,30,0.014,0.005,0.034,0,0.0244
+bird_dev,amigo,default,llm judge wholes,30,19.085,9.29,47.101,0,0.0244
+bird_dev,amigo,default,total,30,96.885,79.266,166.906,0,0.0244
+bird_dev,amigo,default,llm calls per question,30,3.433,,,0,0.0244
+spider_dev,dense,any k,search,30,0.204,0.172,0.287,0,
+spider_dev,dense,any k,total,30,0.204,0.173,0.287,0,
+spider_dev,dense,any k,llm calls per question,30,0.0,,,0,
+spider_dev,bm25,any k,setup,30,0.0,0.0,0.0,0,
+spider_dev,bm25,any k,search,30,0.001,0.001,0.002,0,
+spider_dev,bm25,any k,total,30,0.001,0.001,0.002,0,
+spider_dev,bm25,any k,llm calls per question,30,0.0,,,0,
+spider_dev,hybrid,any k,setup,30,0.0,0.0,0.0,0,
+spider_dev,hybrid,any k,search,30,0.191,0.17,0.231,0,
+spider_dev,hybrid,any k,fuse,30,0.001,0.001,0.001,0,
+spider_dev,hybrid,any k,total,30,0.192,0.171,0.232,0,
+spider_dev,hybrid,any k,llm calls per question,30,0.0,,,0,
+spider_dev,jar,k1,setup,30,0.0,0.0,0.001,0,0.0
+spider_dev,jar,k1,llm decompose,30,3.571,2.943,6.425,0,0.0
+spider_dev,jar,k1,search,30,0.232,0.221,0.267,0,0.0
+spider_dev,jar,k1,joins,30,0.042,0.033,0.078,0,0.0
+spider_dev,jar,k1,choose,30,0.0,0.0,0.0,0,0.0
+spider_dev,jar,k1,total,30,3.846,3.177,6.828,0,0.0
+spider_dev,jar,k1,llm calls per question,30,1.0,,,0,0.0
+spider_dev,jar,k3,setup,30,0.0,0.0,0.001,0,0.0
+spider_dev,jar,k3,llm decompose,30,3.95,3.465,7.45,0,0.0
+spider_dev,jar,k3,search,30,0.228,0.22,0.257,0,0.0
+spider_dev,jar,k3,joins,30,0.038,0.033,0.066,0,0.0
+spider_dev,jar,k3,choose,30,0.006,0.006,0.007,0,0.0
+spider_dev,jar,k3,total,30,4.223,3.726,7.722,0,0.0
+spider_dev,jar,k3,llm calls per question,30,1.0,,,0,0.0
+spider_dev,jar,k5,setup,30,0.0,0.0,0.001,0,0.0
+spider_dev,jar,k5,llm decompose,30,3.693,3.205,5.777,0,0.0
+spider_dev,jar,k5,search,30,0.239,0.227,0.278,0,0.0
+spider_dev,jar,k5,joins,30,0.039,0.033,0.067,0,0.0
+spider_dev,jar,k5,choose,30,0.161,0.157,0.184,0,0.0
+spider_dev,jar,k5,total,30,4.132,3.626,6.176,0,0.0
+spider_dev,jar,k5,llm calls per question,30,1.0,,,0,0.0
+spider_dev,greedy_jar,any k,setup,30,0.0,0.0,0.001,0,0.0
+spider_dev,greedy_jar,any k,llm decompose,30,3.798,2.839,7.204,0,0.0
+spider_dev,greedy_jar,any k,search,30,0.235,0.222,0.276,0,0.0
+spider_dev,greedy_jar,any k,joins,30,0.038,0.032,0.066,0,0.0
+spider_dev,greedy_jar,any k,choose,30,0.0,0.0,0.0,0,0.0
+spider_dev,greedy_jar,any k,total,30,4.072,3.085,7.459,0,0.0
+spider_dev,greedy_jar,any k,llm calls per question,30,1.0,,,0,0.0
+spider_dev,crush4sql,any k,setup,30,0.0,0.0,0.0,0,0.0
+spider_dev,crush4sql,any k,llm schema,30,3.603,3.611,5.631,0,0.0
+spider_dev,crush4sql,any k,search,30,0.089,0.063,0.16,0,0.0
+spider_dev,crush4sql,any k,choose,30,0.002,0.002,0.002,0,0.0
+spider_dev,crush4sql,any k,total,30,3.695,3.67,5.796,0,0.0
+spider_dev,crush4sql,any k,llm calls per question,30,1.0,,,0,0.0
+spider_dev,murre,any k,setup,30,0.0,0.0,0.0,0,0.0
+spider_dev,murre,any k,search,30,0.096,0.053,0.246,0,0.0
+spider_dev,murre,any k,llm removal,30,12.982,5.329,36.762,0,0.0
+spider_dev,murre,any k,rank,30,0.0,0.0,0.0,0,0.0
+spider_dev,murre,any k,total,30,13.078,5.379,37.035,0,0.0
+spider_dev,murre,any k,llm calls per question,30,2.467,,,0,0.0
+spider_dev,core_t,-,setup,30,0.0,0.0,0.0,0,0.0
+spider_dev,core_t,-,search,30,0.059,0.05,0.079,0,0.0
+spider_dev,core_t,-,compat,30,0.0,0.0,0.0,0,0.0
+spider_dev,core_t,-,llm select,30,28.606,26.248,40.055,0,0.0
+spider_dev,core_t,-,adjust,30,0.0,0.0,0.0,0,0.0
+spider_dev,core_t,-,total,30,28.665,26.307,40.102,0,0.0
+spider_dev,core_t,-,llm calls per question,30,1.0,,,0,0.0
+spider_dev,route_sql,-,route,29,0.057,0.051,0.058,0,0.262
+spider_dev,route_sql,-,llm sql,29,5.825,4.67,11.703,0,0.262
+spider_dev,route_sql,-,read sql,29,0.002,0.002,0.003,0,0.262
+spider_dev,route_sql,-,total,29,5.885,4.723,11.789,0,0.262
+spider_dev,route_sql,-,llm calls per question,29,1.0,,,0,0.262
+spider_dev,amigo,default,llm split,30,7.539,6.878,13.081,0,0.0
+spider_dev,amigo,default,lookups,30,0.577,0.487,0.998,0,0.0
+spider_dev,amigo,default,places,30,0.373,0.353,0.545,0,0.0
+spider_dev,amigo,default,llm judge places,30,69.603,60.234,113.113,0,0.0
+spider_dev,amigo,default,search,30,0.006,0.005,0.008,0,0.0
+spider_dev,amigo,default,llm judge wholes,30,13.158,6.25,31.467,0,0.0
+spider_dev,amigo,default,total,30,91.255,79.504,144.08,0,0.0
+spider_dev,amigo,default,llm calls per question,30,2.967,,,0,0.0
+mmqa,dense,any k,search,30,0.188,0.171,0.225,0,
+mmqa,dense,any k,total,30,0.188,0.171,0.225,0,
+mmqa,dense,any k,llm calls per question,30,0.0,,,0,
+mmqa,bm25,any k,setup,30,0.0,0.0,0.0,0,
+mmqa,bm25,any k,search,30,0.001,0.001,0.001,0,
+mmqa,bm25,any k,total,30,0.001,0.001,0.001,0,
+mmqa,bm25,any k,llm calls per question,30,0.0,,,0,
+mmqa,hybrid,any k,setup,30,0.0,0.0,0.0,0,
+mmqa,hybrid,any k,search,30,0.187,0.171,0.23,0,
+mmqa,hybrid,any k,fuse,30,0.001,0.001,0.004,0,
+mmqa,hybrid,any k,total,30,0.188,0.171,0.231,0,
+mmqa,hybrid,any k,llm calls per question,30,0.0,,,0,
+mmqa,jar,k1,setup,30,0.0,0.0,0.0,0,0.0
+mmqa,jar,k1,llm decompose,30,4.741,5.099,6.926,0,0.0
+mmqa,jar,k1,search,30,0.224,0.22,0.26,0,0.0
+mmqa,jar,k1,joins,30,0.056,0.05,0.098,0,0.0
+mmqa,jar,k1,choose,30,0.0,0.0,0.0,0,0.0
+mmqa,jar,k1,total,30,5.022,5.361,7.208,0,0.0
+mmqa,jar,k1,llm calls per question,30,1.0,,,0,0.0
+mmqa,jar,k3,setup,30,0.0,0.0,0.0,0,0.0
+mmqa,jar,k3,llm decompose,30,4.9,5.095,8.086,0,0.0
+mmqa,jar,k3,search,30,0.221,0.22,0.241,0,0.0
+mmqa,jar,k3,joins,30,0.044,0.042,0.069,0,0.0
+mmqa,jar,k3,choose,30,0.007,0.007,0.008,0,0.0
+mmqa,jar,k3,total,30,5.173,5.362,8.361,0,0.0
+mmqa,jar,k3,llm calls per question,30,1.0,,,0,0.0
+mmqa,jar,k5,setup,30,0.0,0.0,0.0,0,0.0
+mmqa,jar,k5,llm decompose,30,5.356,5.781,8.421,0,0.0
+mmqa,jar,k5,search,30,0.257,0.222,0.327,0,0.0
+mmqa,jar,k5,joins,30,0.045,0.042,0.071,0,0.0
+mmqa,jar,k5,choose,30,0.171,0.17,0.189,0,0.0
+mmqa,jar,k5,total,30,5.829,6.245,8.916,0,0.0
+mmqa,jar,k5,llm calls per question,30,1.0,,,0,0.0
+mmqa,greedy_jar,any k,setup,30,0.0,0.0,0.0,0,0.0
+mmqa,greedy_jar,any k,llm decompose,30,5.402,5.338,8.179,0,0.0
+mmqa,greedy_jar,any k,search,30,0.238,0.221,0.282,0,0.0
+mmqa,greedy_jar,any k,joins,30,0.044,0.039,0.073,0,0.0
+mmqa,greedy_jar,any k,choose,30,0.0,0.0,0.0,0,0.0
+mmqa,greedy_jar,any k,total,30,5.684,5.676,8.439,0,0.0
+mmqa,greedy_jar,any k,llm calls per question,30,1.0,,,0,0.0
+mmqa,crush4sql,any k,setup,30,0.0,0.0,0.0,0,0.0
+mmqa,crush4sql,any k,llm schema,30,3.767,3.376,5.539,0,0.0
+mmqa,crush4sql,any k,search,30,0.08,0.07,0.109,0,0.0
+mmqa,crush4sql,any k,choose,30,0.002,0.002,0.002,0,0.0
+mmqa,crush4sql,any k,total,30,3.848,3.476,5.609,0,0.0
+mmqa,crush4sql,any k,llm calls per question,30,1.0,,,0,0.0
+mmqa,murre,any k,setup,30,0.0,0.0,0.0,0,0.0
+mmqa,murre,any k,search,30,0.155,0.15,0.275,0,0.0
+mmqa,murre,any k,llm removal,30,29.298,27.83,51.23,0,0.0
+mmqa,murre,any k,rank,30,0.0,0.0,0.0,0,0.0
+mmqa,murre,any k,total,30,29.453,28.032,51.521,0,0.0
+mmqa,murre,any k,llm calls per question,30,4.467,,,0,0.0
+mmqa,core_t,-,setup,30,0.0,0.0,0.0,0,0.0
+mmqa,core_t,-,search,30,0.062,0.052,0.115,0,0.0
+mmqa,core_t,-,compat,30,0.0,0.0,0.0,0,0.0
+mmqa,core_t,-,llm select,30,28.295,26.204,39.885,0,0.0
+mmqa,core_t,-,adjust,30,0.0,0.0,0.0,0,0.0
+mmqa,core_t,-,total,30,28.358,26.257,39.936,0,0.0
+mmqa,core_t,-,llm calls per question,30,1.0,,,0,0.0
+mmqa,amigo,default,llm split,30,8.043,7.336,12.12,0,0.0
+mmqa,amigo,default,lookups,30,1.059,0.986,1.692,0,0.0
+mmqa,amigo,default,places,30,0.423,0.448,0.632,0,0.0
+mmqa,amigo,default,llm judge places,30,82.772,72.123,122.659,0,0.0
+mmqa,amigo,default,search,30,0.477,0.374,1.022,0,0.0
+mmqa,amigo,default,llm judge wholes,30,58.147,35.444,121.08,0,0.0
+mmqa,amigo,default,total,30,150.92,140.042,268.301,0,0.0
+mmqa,amigo,default,llm calls per question,30,2.9,,,0,0.0

@@ -1,0 +1,192 @@
+You are writing one SQLite query for one interpretation of a question. The
+interpretation is already fixed: every entity the question asks for or filters on is
+already bound to what holds it in the data, a column, a stored value or a table, and
+the tables the query may use are already chosen.
+Your only job is to say in one sentence what the query computes, and to write it.
+
+Output Format, JSON and nothing else:
+
+{
+  "sentence": "one plain sentence saying what the query computes",
+  "sql": "one SQLite SELECT statement"
+}
+
+Rules:
+
+- SQLite dialect only.
+- Implement what the question asks, over exactly these bindings. Each binding line
+  ties one entity of the question to what holds it, written after the arrow:
+  - "-> t.c": column c of table t holds the entity. Use that column for it, and no
+    other column.
+  - "-> t.c = 'v'": the entity is the rows where column c stores the value v.
+  - "-> t.a = 'v' and t.b = 'w'": one value split over columns of one row, like a first
+    name and a last name. Test every one of those columns, each against its own value.
+  - "-> t.a and t.b": the person chose several columns together for the entity, like
+    a first name and a last name for a name. Use every one of them for it.
+  - "-> table t": every row of table t is one such entity, so being a row of t is the
+    whole test. Reach t through the printed LINKS, and add no filter and no column of
+    your own for that entity. A table with no rows gives an empty answer; never use
+    another table or column in its place.
+  - "-> left out": nothing in the data holds this entity, so this interpretation does
+    not use it. Never filter on it or guess where it is stored, and the sentence says
+    plainly that it was not applied.
+  The aggregate, the filter, the order and the output the question asks for are yours
+  to read from the question itself, and so is how several entities combine: rows that
+  meet all of them, or rows that meet any one of them.
+- Do not add an output, a filter, a grouping, an order or a LIMIT the question does
+  not ask for, and do not leave one out.
+- When the question asks for the item with the most or the least of something, return
+  every item tied at that value: keep the rows whose value equals the MAX or the MIN,
+  never ORDER BY with LIMIT 1, which drops the others. A question for the top 3 keeps
+  its LIMIT 3.
+- When a binding line shows = 'value', that is the value exactly as the column stores
+  it. Compare against that spelling, not the spelling used in the question. When the
+  context lists a column's values, compare against one of those.
+- A column of type TEXT compares as text, so '9' > '50'. When the question compares
+  such a column with a number, compare CAST(column AS REAL) instead.
+- Use only the tables shown in the context below. Do not invent a table or a column.
+- Join the tables on exactly the links printed in the LINKS section of the context,
+  each one once, and on no other column. A line with "and" is one join over several
+  columns: test every part of it. A line with "or" is one join that holds when any one
+  of its links holds: join ON (first link) OR (second link) ...
+- A link side printed as CAST(table.column AS INTEGER) stores whole numbers as text
+  like '149.0': join on it exactly as printed.
+- Write a table as "table" and a column as "table.column", or with double quotes as
+  "table"."column". Never write the database name in the SQL: the query already runs
+  against that one database.
+- Double-quote any name that holds a space, a hyphen or any character that is not a
+  letter, a digit or an underscore.
+- One statement. No comments, no trailing semicolon needed.
+- When a "Previous attempt" block is shown, that SQL failed for the reason shown under
+  it: the SQLite error, no rows, or what is wrong with it against the bindings and
+  links. Your new SQL must fix that. Read the column lists in the context again before
+  you guess a name.
+- When a "This is a rewrite" block is shown, the bindings come from an earlier question.
+  Drop any binding the question asked now no longer needs; keep the column choice for
+  the ones it keeps.
+
+Example 1
+Question: Which hotels were booked by guests from Japan?
+
+Bindings:
+e1: hotel -> hotel.name
+e2: guest country = "Japan" -> guest.country = 'Japan'
+
+Context:
+name: hotel
+readable: Hotels
+description: one row per hotel in the city
+rows: 41
+primary key: hotel_id
+columns: hotel.hotel_id, hotel.name, hotel.district
+
+name: booking
+readable: Bookings
+description: one row per confirmed booking, cancellations excluded
+rows: 88213
+primary key: booking_id
+columns: booking.booking_id, booking.hotel_id, booking.guest_id, booking.arrival
+
+name: guest
+readable: Guests
+description: one row per guest who has ever booked
+rows: 60455
+primary key: guest_id
+columns: guest.guest_id, guest.full_name, guest.country
+
+LINKS
+  booking.hotel_id -> hotel.hotel_id
+  booking.guest_id -> guest.guest_id
+
+{
+  "sentence": "The names of the hotels that at least one guest from Japan has booked.",
+  "sql": "SELECT DISTINCT hotel.name FROM hotel JOIN booking ON booking.hotel_id = hotel.hotel_id JOIN guest ON guest.guest_id = booking.guest_id WHERE guest.country = 'Japan'"
+}
+
+Example 2, a repair after a failed attempt
+Question: How many members signed up at the Northgate branch in 2024?
+
+Bindings:
+e1: member -> member.member_id
+e2: branch name = "Northgate" -> branch.branch_name = 'Northgate'
+e3: signup date = 2024-01-01..2024-12-31 -> member.signup
+
+Context:
+name: branch
+readable: Branches
+description: one row per library branch
+rows: 12
+primary key: branch_id
+columns: branch.branch_id, branch.branch_name
+
+name: member
+readable: Members
+description: one row per library member, past and present
+rows: 30514
+primary key: member_id
+columns: member.member_id, member.branch_id, member.signup
+
+LINKS
+  member.branch_id -> branch.branch_id
+
+Previous attempt, which failed:
+SELECT COUNT(member.member_id) FROM member JOIN branch ON member.branch_id = branch.branch_id WHERE branch.branch_name = 'Northgate' AND strftime('%Y', member.signup_date) = '2024'
+
+SQLite error:
+no such column: member.signup_date
+
+{
+  "sentence": "How many members of the Northgate branch have a signup date in 2024.",
+  "sql": "SELECT COUNT(member.member_id) FROM member JOIN branch ON member.branch_id = branch.branch_id WHERE branch.branch_name = 'Northgate' AND strftime('%Y', member.signup) = '2024'"
+}
+
+Example 3, an entity held by a table
+Question: Which couriers delivered a refunded parcel heavier than 20 kg?
+
+Bindings:
+e1: courier -> courier.name
+e2: parcel status = "refunded" -> table refund
+e3: parcel weight = 20 -> parcel.weight_kg
+
+Context:
+name: courier
+readable: Couriers
+description: one row per courier company
+rows: 9
+primary key: courier_id
+columns: courier.courier_id, courier.name
+
+name: parcel
+readable: Parcels
+description: one row per parcel sent
+rows: 51230
+primary key: parcel_id
+columns: parcel.parcel_id, parcel.courier_id, parcel.weight_kg, parcel.status
+
+name: refund
+readable: Refunds
+description: one row per parcel whose price was paid back
+rows: 1874
+primary key: refund_id
+columns: refund.refund_id, refund.parcel_id, refund.refunded_on
+
+LINKS
+  parcel.courier_id -> courier.courier_id
+  refund.parcel_id -> parcel.parcel_id
+
+{
+  "sentence": "The names of the couriers who delivered at least one refunded parcel heavier than 20 kg.",
+  "sql": "SELECT DISTINCT courier.name FROM courier JOIN parcel ON parcel.courier_id = courier.courier_id JOIN refund ON refund.parcel_id = parcel.parcel_id WHERE parcel.weight_kg > 20"
+}
+
+Question: $question
+
+Bindings:
+$bindings
+
+Context:
+$context
+
+$previous
+
+Return an answer only in this exact Output Format.

@@ -1,0 +1,60 @@
+A person asked a question about a data lake: many databases, each with many tables. Code
+split the question into parts and found the place of each part: a column. Each place was
+already judged on its own. What is left is how the tables are joined: each join below links
+two tables that can be linked on more than one pair of columns, and each way to link them
+relates other rows. Your only job is to say yes or no for each way of each join. Code then
+builds the answers from your answers; you do not write queries.
+
+- yes: a person asking this question could mean the rows it relates: it relates the things
+  the question relates.
+- no: it relates other rows (a captain's home port, not the port a crossing used).
+
+How to judge:
+- Judge every way on its own. Several can be yes: a word that fits two links (a crossing
+  "at" a port leaves from it or arrives at it). List each of them.
+- "x and y (all these links on the same rows)" relates rows that match on every link at
+  once; "x or y (any of these links)" relates rows that match on at least one. Say yes to
+  them only when the question could mean all at once, or any one.
+- Judge only from what is printed below.
+
+Output Format, JSON and nothing else:
+
+{"joins": [{"join": number of the join, "yes": [numbers of its ways a person could mean]}]}
+
+Every join appears once, in order. A number appears at most once in a list. An empty list
+is allowed.
+
+Example (invented, not from this lake)
+Question: Which captains had a crossing at Stornhavn in May 2025?
+Parts:
+  1. captains
+  2. port name = "Stornhavn" (text)
+  3. crossing date = 2025-05-01..2025-05-31 (date)
+Tables:
+  T1 | database coastal ferries | table crossing (38200 rows): each row is one ferry crossing.
+  T2 | database coastal ferries | table port (24 rows): each row is one port.
+  T3 | database coastal ferries | table captain (140 rows): each row is one ship captain.
+Columns the joins link:
+  T1.depart_port_id: the port the crossing leaves from
+  T2.port_id: the port's id
+  T1.arrive_port_id: the port the crossing arrives at
+Joins:
+  J1, T1 to T2:
+    1. T1.depart_port_id = T2.port_id
+    2. T1.arrive_port_id = T2.port_id
+    3. T1.depart_port_id = T2.port_id and T1.arrive_port_id = T2.port_id (all these links on the same rows)
+    4. T1.depart_port_id = T2.port_id or T1.arrive_port_id = T2.port_id (any of these links)
+Answer:
+{"joins": [{"join": 1, "yes": [1, 2, 4]}]}
+
+Question: $question
+Parts:
+$parts
+Tables:
+$tables
+Columns the joins link:
+$columns
+Joins:
+$joins
+
+Return an answer only in this exact Output Format.

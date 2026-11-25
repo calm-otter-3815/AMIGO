@@ -1,0 +1,12 @@
+.env
+.venv
+benchmarks
+lakes
+runs/
+__pycache__/
+*.pyc
+.DS_Store
+.impeccable/
+.claude/settings.local.json
+.claude/handoff/
+experiments/results/topk_2026-11-08/*.jsonl

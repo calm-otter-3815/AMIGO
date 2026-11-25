@@ -1,0 +1,43 @@
+We are working on text-to-SQL over a data lake. A user asks a question in natural
+language, and we have found the tables that can answer it. Some pairs of these tables
+can be joined in more than one way, and each way connects different rows.
+
+For each pair of tables below, keep the way or ways of joining them that make sense
+for this question. If more than one way makes sense, keep each one of them, since the
+question can have more than one valid meaning. If none does, keep none.
+
+Example 1
+Question: Which employees work in the Sales department?
+Join 1: hr.employee (one row per employee) and hr.department (one row per department)
+  1. hr.employee.dept_id = hr.department.dept_id (the department the employee works in)
+  2. hr.employee.emp_id = hr.department.manager_id (the employee who manages the department)
+Answer: {"1": [1]}
+Why: "work in" is the department the employee belongs to. The second way connects a
+department to its manager, which is not what the question is asking for.
+
+Example 2
+Question: Which flights were at Lyon airport on 3 May?
+Join 1: air.flight (one row per flight) and air.airport (one row per airport)
+  1. air.flight.from_airport = air.airport.code (the airport the flight leaves from)
+  2. air.flight.to_airport = air.airport.code (the airport the flight lands at)
+Answer: {"1": [1, 2]}
+Why: "at Lyon" can mean leaving Lyon or landing at Lyon. Both make sense.
+
+Example 3
+Question: Which teams won a match in 2024?
+Join 1: league.match (one row per match) and league.team (one row per team)
+  1. league.match.home_team = league.team.team_id (the team that played at home)
+  2. league.match.away_team = league.team.team_id (the team that played away)
+  3. league.match.winner = league.team.team_id (the team that won the match)
+Answer: {"1": [3]}
+Why: the question asks about winning, so only the winner makes sense. Playing at home
+or away does not mean the team won.
+
+Question: $question
+
+$joins
+
+Output Format, JSON only:
+{"<join number>": [<numbers of the ways that make sense>, ...]}
+
+Return an answer only in this exact Output Format.

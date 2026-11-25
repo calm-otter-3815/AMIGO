@@ -1,0 +1,69 @@
+You are helping a person choose which interpretation of their question they mean. Each
+interpretation below says where each part of the question was taken to be stored (a
+column, a value, or the rows of a table), which tables it reads and how it links them.
+What every interpretation shares is listed once, apart; under each interpretation are
+only the choices that are its own. Write, for each interpretation, a short title and a
+plain meaning, so that the person sees at a glance how the interpretations differ.
+
+Output Format, JSON and nothing else:
+
+{"interpretations": [{"id": "I1", "title": "at most 6 plain words", "meaning": "one or two plain sentences"}]}
+
+Rules:
+
+- One entry per interpretation, in the order given, with its id as given.
+- The title names what sets this interpretation apart from the others, never what they
+  all share. Two titles are never the same. When there is only one interpretation, the
+  title says in plain words what it answers.
+- The meaning starts with what this interpretation answers, in the words of the question,
+  then says in plain words the choice that sets it apart, and what that choice changes
+  for the answer when the descriptions show it (for example a column that is empty on
+  some rows counts only the rows where it is filled in).
+- When interpretations differ only in how they link two tables, say what each one links
+  on in plain words ("matched by member id", "matched by name") and why that can change
+  the answer.
+- A line "-> left out" is a part of the question that the data does not hold, so it is
+  not applied: say so, and never write as if the answer follows it.
+- Use only what the lines and the descriptions below show. Never add a fact, and never
+  give a number the descriptions do not hold.
+- Talk about the things the question is about. Never write a table or column by its code
+  name, and never mention SQL, joins or bindings.
+
+Example
+Question: How many readers from Lyon borrowed a book?
+
+Same in every interpretation:
+  E2: city = "Lyon" -> members.city = 'Lyon'
+  table loans
+  table members
+
+I1:
+  E1: reader -> table members
+  loans.member_id -> members.id
+
+I2:
+  E1: reader -> members.card_number
+  loans.member_id -> members.id
+
+I3:
+  E1: reader -> table members
+  loans.member_name -> members.name
+
+Places:
+table members: Members; one row per person registered at the library; 5210 rows
+members.card_number: Card number; the number of the person's library card; empty on 31% of rows; 3595 distinct values
+loans.member_id: Member id; the member who borrowed the book; empty on 0% of rows; 4870 distinct values
+members.id: Id; empty on 0% of rows; 5210 distinct values
+loans.member_name: Member name; the name written on the loan slip; empty on 2% of rows; 4790 distinct values
+members.name: Name; the member's full name; empty on 0% of rows; 5104 distinct values
+
+{"interpretations": [{"id": "I1", "title": "Every registered member", "meaning": "Counts the registered members living in Lyon who borrowed a book, matching each loan to its member by member id."}, {"id": "I2", "title": "Only members with a library card", "meaning": "Counts the Lyon members who borrowed a book, but only those who hold a library card. The card number is empty for 31% of members, so this count can be lower."}, {"id": "I3", "title": "Loans matched by name", "meaning": "Counts the Lyon members who borrowed a book, matching each loan to a member by the name on the loan slip instead of the member id. Members who share a name can be mixed up, so this count can differ."}]}
+
+Question: $question
+
+$interpretations
+
+Places:
+$places
+
+Return an answer only in this exact Output Format.

@@ -1,0 +1,2100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AMIGO</title>
+<style>
+:root {
+  --bg: #ffffff; --panel: #f4f4f4; --panel2: #ebebeb; --line: #e3e3e3; --text: #1f1f1f; --dim: #6f6f6f;
+  --faint: #a3a3a3; --me: #f0f0f0; --ok: #1f8a54; --ok-bg: #e3f4ea; --no: #c4413a; --acc: #3b6fd8;
+  --btn: #1f1f1f; --btn-text: #ffffff; --shadow: 0 8px 30px rgba(0,0,0,.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f0f0f; --panel: #1b1b1b; --panel2: #242424; --line: #2c2c2c; --text: #ececec; --dim: #9a9a9a;
+    --faint: #5f5f5f; --me: #2f2f2f; --ok: #4cc38a; --ok-bg: #173526; --no: #e5675f; --acc: #7aa2f7;
+    --btn: #ececec; --btn-text: #111111; --shadow: 0 8px 30px rgba(0,0,0,.5);
+  }
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+[hidden] { display: none !important; }
+
+/* top bar: small and quiet */
+header { position: fixed; top: 0; left: 0; right: 0; height: 52px; display: flex; align-items: center; gap: 10px; padding: 0 16px; background: var(--bg); z-index: 20; }
+header .logo { font-weight: 650; letter-spacing: .06em; margin-right: 6px; cursor: pointer; }
+header .grow { flex: 1; }
+.pill { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 3px 10px; font-size: 13px; color: var(--dim); }
+select.pill { appearance: none; padding-right: 22px; background: linear-gradient(45deg, transparent 50%, var(--dim) 50%) right 11px center / 5px 5px no-repeat, linear-gradient(-45deg, transparent 50%, var(--dim) 50%) right 7px center / 5px 5px no-repeat; }
+.stat { font-size: 13px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.seg button { border: 0; background: none; padding: 3px 11px; font-size: 13px; color: var(--dim); }
+.seg button.on { background: var(--panel2); color: var(--text); }
+.ghost { border: 1px solid var(--line); background: none; border-radius: 999px; padding: 3px 12px; font-size: 13px; }
+
+/* start screen */
+#start { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 80px 16px 18vh; }
+#start h1 { font-weight: 400; font-size: 28px; margin: 0; }
+.box { width: min(720px, 100%); background: var(--panel); border-radius: 28px; padding: 10px 10px 10px 20px; display: flex; align-items: flex-end; gap: 8px; box-shadow: var(--shadow); }
+.box textarea { flex: 1; border: 0; outline: 0; background: none; resize: none; padding: 7px 0; max-height: 200px; line-height: 1.5; }
+.send { width: 36px; height: 36px; flex: none; border-radius: 50%; border: 0; background: var(--btn); color: var(--btn-text); display: grid; place-items: center; font-size: 17px; }
+.send:disabled { opacity: .3; cursor: default; }
+.send.stop::before { content: ""; width: 11px; height: 11px; background: var(--btn-text); border-radius: 2px; }
+.link { background: none; border: 0; color: var(--dim); font-size: 13.5px; text-decoration: underline dotted; text-underline-offset: 3px; padding: 0; }
+.err { color: var(--no); font-size: 13.5px; }
+
+/* chat */
+#chat { max-width: 860px; margin: 0 auto; padding: 70px 16px 150px; }
+body.side-open #chat { margin-right: 456px; margin-left: max(16px, calc(100vw - 1316px)); }
+.me { margin: 26px 0 18px auto; width: fit-content; max-width: 80%; background: var(--me); padding: 9px 16px; border-radius: 20px; white-space: pre-wrap; animation: rise .3s ease; }
+.me .back, .bot > .back { display: block; font-size: 12px; color: var(--dim); background: none; border: 0; padding: 0; margin-top: 2px; text-decoration: underline dotted; }
+.bot { margin: 16px 0; animation: rise .35s ease; }
+.bot p { margin: 4px 0; }
+.step { color: var(--dim); font-size: 12.5px; letter-spacing: .02em; margin-bottom: 6px; }
+.note { color: var(--dim); font-size: 13.5px; }
+.bad { color: var(--no); }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.btn { border: 0; background: var(--btn); color: var(--btn-text); border-radius: 999px; padding: 6px 16px; font-size: 13.5px; }
+.btn:disabled { opacity: .35; cursor: default; }
+.btn.line { background: none; color: var(--text); border: 1px solid var(--line); }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+
+/* the live line: what the system is doing now */
+#live { display: flex; gap: 10px; align-items: center; color: var(--dim); font-size: 13.5px; margin: 14px 0; }
+.dots { display: inline-flex; gap: 4px; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); animation: blink 1.1s infinite ease-in-out; }
+.dots i:nth-child(2) { animation-delay: .15s; } .dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes blink { 0%, 100% { opacity: .2; transform: scale(.8); } 50% { opacity: 1; transform: none; } }
+.log { margin: 6px 0; padding: 8px 12px; border-left: 2px solid var(--line); color: var(--dim); max-height: 220px; overflow: auto; }
+.log div { white-space: pre-wrap; word-break: break-word; }
+.verbose-only { display: none; }
+body.verbose .verbose-only { display: block; }
+body.verbose span.verbose-only { display: inline; }
+
+/* step 1: parts */
+.parts { display: flex; flex-wrap: wrap; gap: 8px; }
+.part { display: inline-flex; align-items: center; gap: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 4px 6px 4px 10px; }
+.part input { border: 0; background: none; outline: 0; padding: 2px 0; min-width: 40px; }
+.part input.attr { font-weight: 550; }
+.part input.val { color: var(--dim); font-size: 13.5px; }
+.part .eq { color: var(--faint); font-size: 13px; }
+.part .x { border: 0; background: none; color: var(--faint); font-size: 16px; line-height: 1; padding: 0 4px; }
+.part.add { border-style: dashed; color: var(--dim); padding: 4px 12px; background: none; }
+.locked .part { background: none; }
+.locked .part .x, .locked .part.add { display: none; }
+
+/* step 2 and 3: places per part, side by side */
+.cols { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; }
+.col { flex: 1 1 0; min-width: 240px; background: var(--panel); border-radius: 14px; padding: 10px 8px 8px; opacity: 0; transform: translateX(-24px); transition: opacity .5s ease, transform .5s ease; }
+.col.in { opacity: 1; transform: none; }
+.col h4 { margin: 0 6px 8px; font-weight: 600; font-size: 14px; display: flex; justify-content: space-between; gap: 8px; }
+.col h4 small { color: var(--dim); font-weight: 400; font-size: 12px; }
+.cand { display: grid; grid-template-columns: 22px 1fr auto; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 9px; opacity: 0; transform: translateY(4px); transition: opacity .45s ease, transform .45s ease, background .2s; }
+.cand.in { opacity: 1; transform: none; }
+.cand:hover { background: var(--panel2); }
+.cand .mark { width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--line); background: none; padding: 0; font-size: 11px; line-height: 18px; color: transparent; }
+.cand .name { border: 0; background: none; padding: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cand .name small { color: var(--dim); }
+.cand .meta { display: flex; align-items: center; gap: 6px; }
+.bar { width: 42px; height: 5px; background: var(--panel2); border-radius: 3px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--acc); border-radius: 3px; }
+.score { font-size: 11.5px; color: var(--dim); width: 30px; text-align: right; font-variant-numeric: tabular-nums; }
+.val { font-size: 11px; padding: 0 6px; border-radius: 6px; white-space: nowrap; }
+.val.y { background: var(--ok-bg); color: var(--ok); }
+.val.n { color: var(--faint); }
+.why { grid-column: 2 / 4; font-size: 11.5px; color: var(--dim); }
+.cand.yes .mark { background: var(--ok); border-color: var(--ok); color: #fff; }
+.cand.yes .mark::after { content: "✓"; }
+.cand.no { opacity: .45; }
+.cand.no .name { text-decoration: line-through; text-decoration-color: var(--faint); }
+.cand.no .mark::after { content: "✕"; color: var(--faint); }
+.cand.flip { animation: flip .5s ease; }
+@keyframes flip { 0% { background: var(--panel2); } 100% { background: transparent; } }
+.cand.edited .mark { box-shadow: 0 0 0 2px var(--acc); }
+.editable .cand .mark { cursor: pointer; }
+.cand.open { background: var(--panel2); }
+.cand.later { display: none; }
+.col.all .cand.later { display: grid; }
+.col .more { margin: 6px 0 2px 34px; font-size: 12.5px; }
+
+/* forks, interpretations, answers */
+.opts { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.opt { display: flex; align-items: center; gap: 10px; text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 7px 12px; width: fit-content; max-width: 100%; transition: border-color .2s; }
+.opt:hover { border-color: var(--dim); }
+.opt.ticked { border-color: var(--acc); }
+.opt small { color: var(--dim); }
+.opt input { margin: 0; width: 16px; height: 16px; accent-color: var(--acc); cursor: pointer; }
+.opt .optname { border: 0; background: none; padding: 0; text-align: left; }
+.opt .see { border: 0; background: none; padding: 0 0 0 4px; color: var(--acc); font-size: 12.5px; white-space: nowrap; }
+.opt .see::after { content: " ▾"; display: inline-block; transition: transform .2s; }
+.opt.open .see::after { transform: rotate(180deg); }
+.opt button:disabled, .opt input:disabled { cursor: default; }
+.peek { margin: 2px 0 6px 26px; padding: 12px 14px; border-left: 3px solid var(--acc); background: var(--panel); border-radius: 0 12px 12px 0; animation: rise .3s ease; max-width: calc(100% - 26px); }
+.peek .what { font-weight: 550; }
+.peek .what code { font-weight: 400; }
+.peek .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
+.peek .chip { font-size: 12px; background: var(--panel2); border-radius: 999px; padding: 1px 9px; }
+.peek .chip.link { color: var(--dim); }
+.peek table.rows { font-size: 12.5px; }
+.peek table.rows td { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; background: var(--panel2); padding: 0 5px; border-radius: 5px; }
+.route { border-left: 3px solid var(--acc); padding: 2px 0 2px 12px; }
+.wording { color: var(--faint); font-size: 12px; }
+.card { background: var(--panel); border-radius: 14px; padding: 10px 14px; margin: 8px 0; }
+.card .title { font-weight: 600; }
+.card .bind { font-size: 13px; color: var(--dim); }
+.card label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.card label input { margin-top: 5px; }
+table.rows { border-collapse: collapse; width: 100%; font-size: 13px; margin-top: 6px; }
+table.rows th, table.rows td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.rows th { color: var(--dim); font-weight: 500; }
+table.rows th.hl, table.rows td.hl { background: var(--ok-bg); }
+details summary { cursor: pointer; color: var(--dim); font-size: 13px; }
+pre { white-space: pre-wrap; word-break: break-word; background: var(--panel2); padding: 8px 10px; border-radius: 8px; margin: 6px 0; }
+
+/* composer at the bottom of the chat */
+#composer { position: fixed; bottom: 0; left: 0; right: 0; padding: 12px 16px 18px; background: linear-gradient(transparent, var(--bg) 30%); }
+#composer .box { margin: 0 auto; box-shadow: var(--shadow); }
+body.side-open #composer { padding-right: 456px; }
+
+/* side panel: a place's rows */
+#side { position: fixed; top: 52px; right: 0; bottom: 0; width: min(440px, 100%); background: var(--bg); border-left: 1px solid var(--line); padding: 14px 16px; overflow: auto; transform: translateX(100%); transition: transform .3s ease; z-index: 15; }
+body.side-open #side { transform: none; }
+#side h3 { margin: 0; font-size: 15px; }
+#side .x { float: right; border: 0; background: none; font-size: 20px; color: var(--dim); }
+#side input[type=search] { width: 100%; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 6px 10px; margin: 10px 0 4px; }
+#side table.rows { font-family: ui-monospace, monospace; font-size: 12px; }
+
+/* benchmark question list */
+#picker { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: grid; place-items: center; z-index: 30; padding: 16px; }
+#picker .sheet { background: var(--bg); border-radius: 16px; width: min(720px, 100%); max-height: 75vh; display: flex; flex-direction: column; box-shadow: var(--shadow); border: 1px solid var(--line); }
+#picker input { margin: 14px; border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 8px 12px; outline: 0; }
+#picker ul { list-style: none; margin: 0; padding: 0 8px 10px; overflow: auto; }
+#picker li button { width: 100%; text-align: left; border: 0; background: none; padding: 7px 10px; border-radius: 8px; }
+#picker li button:hover { background: var(--panel); }
+
+.pill.on { color: var(--text); border-color: var(--dim); }
+.pill:disabled { opacity: .5; cursor: default; }
+
+/* layout: the chats on the left, the live map on the right; the chat sits between */
+:root { --navw: 0px; --mapw: 0px; }
+body.nav-open { --navw: 272px; }
+body.map-open.chatting { --mapw: min(46vw, 760px); }
+body { padding-left: var(--navw); padding-right: var(--mapw); transition: padding .4s ease; }
+#composer { left: var(--navw); right: var(--mapw); transition: left .4s ease, right .4s ease; }
+body.map-open.chatting #side { width: max(var(--mapw), min(440px, 100%)); }
+body.map-open.chatting.side-open #chat { margin: 0 auto; }
+body.map-open.chatting.side-open #composer { padding-right: 16px; }
+
+/* chat history */
+#nav { position: fixed; top: 52px; left: 0; bottom: 0; width: 272px; background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; padding: 10px; transform: translateX(-100%); transition: transform .4s ease; z-index: 18; }
+body.nav-open #nav { transform: none; }
+#nav .new { width: 100%; text-align: left; }
+#nav input[type=search], #nav select { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 9px; padding: 5px 9px; font-size: 13px; }
+.navrow { display: flex; gap: 6px; }
+.navrow select { flex: 1; }
+#nav .seg { width: 100%; }
+#nav .seg button { flex: 1; }
+#navlist { flex: 1; overflow: auto; margin: 0 -4px; padding: 0 4px; }
+.navsec { margin: 8px 0 4px; border-radius: 10px; transition: background .2s; }
+.navsec.drop { background: var(--panel2); outline: 1px dashed var(--acc); }
+.navhead { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--dim); padding: 2px 6px 4px; }
+.navhead span { flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.navicon { border: 0; background: none; color: var(--faint); padding: 0 3px; font-size: 13px; }
+.navicon:hover { color: var(--text); }
+.navitem { display: flex; align-items: center; border-radius: 9px; animation: rise .3s ease; }
+.navitem:hover, .navitem.on { background: var(--panel2); }
+.navopen { flex: 1; min-width: 0; border: 0; background: none; text-align: left; padding: 6px 8px; display: flex; flex-direction: column; }
+.navtitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
+.navopen small { color: var(--dim); font-size: 11.5px; }
+.navitem.live .navtitle::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); margin-right: 6px; animation: blink 1.2s infinite; }
+.navmore { border: 0; background: none; color: var(--dim); padding: 4px 8px; opacity: 0; }
+.navitem:hover .navmore, .navitem.on .navmore, .navmore:focus { opacity: 1; }
+.navempty { color: var(--faint); font-size: 12.5px; padding: 4px 8px 8px; }
+.navfoot { display: flex; gap: 6px; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 8px; }
+.navfoot button { font-size: 12.5px; }
+.navfoot .bad { color: var(--no); }
+.menu { position: fixed; z-index: 40; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 6px; min-width: 190px; display: flex; flex-direction: column; animation: rise .15s ease; }
+.menu button { border: 0; background: none; text-align: left; padding: 5px 10px; border-radius: 7px; font-size: 13.5px; }
+.menu button:hover { background: var(--panel); }
+.menu button.on::after { content: " ✓"; color: var(--acc); }
+.menu .menuhead { font-size: 11.5px; color: var(--dim); padding: 4px 10px 2px; }
+.menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 0; width: 100%; }
+.menu .bad { color: var(--no); }
+
+/* the live map */
+#map { position: fixed; top: 52px; right: 0; bottom: 0; width: var(--mapw); border-left: 1px solid var(--line); background: var(--bg); overflow: hidden; transform: translateX(100%); transition: transform .4s ease, width .4s ease; z-index: 12;
+  display: flex; flex-direction: column; gap: 10px; padding: 10px; }
+.pane { background: color-mix(in srgb, var(--panel) 55%, var(--bg)); border: 1px solid var(--line); border-radius: 14px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; transition: flex-basis .35s ease; }
+#lakecard { flex: 0 0 min(340px, 42%); }
+#diagcard { flex: 1 1 0; }
+#map.big-lake #lakecard, #map.big-diag #diagcard { flex: 1 1 0; }
+#map.big-lake #diagcard, #map.big-diag #lakecard { display: none; }
+.cardhead { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 10px 12px 8px; border-bottom: 1px solid var(--line); }
+.cardhead b { font-size: 14px; }
+.cardhead .note { color: var(--dim); font-size: 12.5px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 0; }
+.cardhead .tools { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.cardhead .seg button { padding: 2px 9px; font-size: 12px; }
+.cardhead #mapnow, .cardhead .legend { flex-basis: 100%; }
+.iconbtn { width: 26px; height: 26px; border: 1px solid var(--line); border-radius: 8px; background: none; color: var(--dim); font-size: 14px; line-height: 1; display: inline-grid; place-items: center; }
+.iconbtn:hover { color: var(--text); border-color: var(--dim); }
+.iconbtn[data-big]::before { content: "\2922"; }
+#map.big-lake [data-big="lake"]::before, #map.big-diag [data-big="diag"]::before { content: "\2921"; }
+.cardscroll { overflow: auto; flex: 1 1 0; min-height: 0; }
+.lakestage { position: relative; flex: 1 1 0; min-height: 0; }
+#lakemap { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+#lakemap.dragging { cursor: grabbing; }
+#lakemap.over { cursor: pointer; }
+.lakehelp { position: absolute; left: 10px; bottom: 8px; font-size: 11px; color: var(--faint); pointer-events: none; }
+.lakeinfo { position: absolute; right: 8px; top: 8px; max-height: calc(100% - 16px); width: min(300px, 70%); overflow: auto; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 12.5px; box-shadow: var(--shadow); }
+.lakeinfo .x { position: absolute; right: 6px; top: 6px; }
+.lakeinfo b { display: block; font-size: 13.5px; padding-right: 30px; overflow-wrap: anywhere; }
+.lakeinfo small { color: var(--dim); display: block; margin-bottom: 6px; }
+.lakeinfo .row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-top: 1px solid var(--line); }
+.lakeinfo .row span:last-child { color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+.lakeinfo .row.kept span:first-child { color: var(--ok); font-weight: 600; }
+.lakeinfo .row.dropped span:first-child { text-decoration: line-through; color: var(--faint); }
+.lakeinfo .row.on { background: color-mix(in srgb, var(--acc) 10%, transparent); }
+.lakeinfo p { margin: 4px 0 8px; color: var(--dim); }
+
+body.map-open.chatting #map { transform: none; }
+.maphead b { font-size: 14px; }
+#mapnow { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-top: 4px; min-height: 20px; }
+#mapnow .dots i { width: 5px; height: 5px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11.5px; color: var(--dim); margin-top: 6px; }
+.legend i { display: inline-block; width: 16px; height: 0; border-top: 2px solid var(--faint); vertical-align: middle; margin-right: 4px; }
+.legend .kept i { border-color: var(--ok); }
+.legend .seen i { border-top-style: dashed; }
+.legend .drop i { opacity: .3; }
+.legend .pick i { border-color: var(--acc); border-top-width: 3px; }
+.legend .join i { border-color: var(--acc); border-top-style: dotted; }
+#mapbody { position: relative; padding: 14px 12px 30px; }
+#mapedges { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+.lanes { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 54px; position: relative; }
+.lane { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.lanehead { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin-bottom: 2px; }
+.mnode { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 11px; padding: 6px 9px; font-size: 12.5px; opacity: 0; transform: translateX(-10px) scale(.98); transition: opacity .5s ease, transform .5s ease, border-color .4s, background .4s, box-shadow .4s; }
+.mnode.in { opacity: 1; transform: none; }
+.mnode b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mnode small { color: var(--dim); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mnode .cols { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+.mnode .c { font-size: 11px; border-radius: 6px; padding: 0 5px; background: var(--panel2); color: var(--dim); transition: background .4s, color .4s, opacity .4s; }
+.mnode .c.kept { background: var(--ok-bg); color: var(--ok); }
+.mnode .c.dropped { opacity: .45; text-decoration: line-through; }
+.mnode .mbar { height: 3px; background: var(--panel2); border-radius: 2px; margin-top: 5px; overflow: hidden; }
+.mnode .mbar i { display: block; height: 100%; background: var(--acc); opacity: .6; transition: width .6s ease; }
+.mnode.kept { border-color: var(--ok); }
+.mnode.in.dropped, .mnode.in.passed, .mnode.in.off { opacity: .38; }
+.mnode.in.asking { border-color: var(--acc); animation: ask 1.6s ease-in-out infinite; }
+.mnode.used, .mnode.picked, .mnode.chosen { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 9%, var(--panel)); }
+.mnode.in.running { border-color: var(--acc); animation: ask 1s ease-in-out infinite; }
+.mnode.answered { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 8%, var(--panel)); }
+.mnode.failed { border-color: var(--no); }
+.mnode .ans { margin-top: 4px; font-size: 12px; color: var(--ok); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mnode.failed .ans { color: var(--no); }
+@keyframes ask { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--acc) 35%, transparent); } 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--acc) 12%, transparent); } }
+.mmore { font-size: 11.5px; color: var(--faint); padding-left: 4px; }
+.e { fill: none; stroke: var(--faint); stroke-width: 1.3; transition: stroke .4s, stroke-width .4s, opacity .4s; }
+.e.seen { stroke-dasharray: 3 4; }
+.e.kept { stroke: var(--ok); stroke-width: 1.6; }
+.e.dropped { opacity: .22; stroke-dasharray: 2 5; }
+.e.asking { stroke: var(--acc); stroke-width: 2; stroke-dasharray: 6 5; animation: flow 1s linear infinite; }
+.e.picked { stroke: var(--acc); stroke-width: 2.2; }
+.e.join { stroke: var(--acc); stroke-width: 1.8; stroke-dasharray: 1.5 3.5; stroke-linecap: round; }
+.e.use { stroke: var(--dim); stroke-width: 1.2; opacity: .6; }
+.e.use.chosen, .e.use.running, .e.use.answered { stroke: var(--acc); stroke-width: 2; opacity: 1; }
+.e.use.off { opacity: .12; }
+.e.fresh { stroke-dasharray: 600; stroke-dashoffset: 600; animation: draw .9s ease forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes flow { to { stroke-dashoffset: -11; } }
+.mapempty { color: var(--faint); font-size: 13px; padding: 30px 0; text-align: center; }
+
+@media (max-width: 1000px) {
+  body.nav-open { --navw: 0px; }
+  body.map-open.chatting { --mapw: 0px; }
+  body.nav-open #nav { box-shadow: var(--shadow); }
+  body.map-open.chatting #map { width: 100%; }
+}
+
+@media (max-width: 640px) {
+  header .stat, #modelsel, #thinkbtn, #effortsel { display: none; }
+  .col { min-width: 210px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <button class="navicon" id="navbtn" aria-label="Show or hide your chats" title="Your chats" style="font-size:18px">☰</button>
+  <span class="logo" id="home" title="New chat">AMIGO</span>
+  <select class="pill" id="lakesel" aria-label="Lake"></select>
+  <select class="pill" id="modelsel" aria-label="Model"><option>model…</option></select>
+  <button class="pill" id="thinkbtn" hidden title="Whether the model reasons before it answers">Thinking on</button>
+  <select class="pill" id="effortsel" aria-label="Reasoning effort" hidden title="How long the model reasons before it answers"></select>
+  <span class="grow"></span>
+  <span class="stat" id="stat" hidden></span>
+  <span class="seg" id="viewseg" hidden><button data-v="normal" class="on">Normal</button><button data-v="verbose">Verbose</button></span>
+  <button class="pill" id="mapbtn" hidden title="Show or hide the live map">Map</button>
+  <button class="ghost" id="newchat" hidden>New chat</button>
+</header>
+
+<nav id="nav" aria-label="Your chats">
+  <button class="ghost new" id="navnew">+ New chat</button>
+  <input id="navq" type="search" placeholder="Search chats" aria-label="Search chats">
+  <div class="navrow">
+    <select id="navlake" aria-label="Filter by lake"><option value="">All lakes</option></select>
+    <select id="navtime" aria-label="Filter by time"><option value="">Any time</option><option value="day">Today</option><option value="week">Last 7 days</option><option value="month">Last 30 days</option></select>
+  </div>
+  <span class="seg" id="navgroup" title="Group the chats by"><button data-g="time">Time</button><button data-g="lake">Lake</button><button data-g="folder">Folder</button></span>
+  <div id="navlist"></div>
+  <div class="navfoot"><button class="ghost" id="newfolder">+ New folder</button><button class="ghost bad" id="delall">Delete all</button></div>
+</nav>
+
+<aside id="map" aria-label="Live map of the search">
+  <section class="pane" id="lakecard">
+    <div class="cardhead">
+      <b>Lake</b><span class="note" id="lakenote"></span>
+      <span class="tools">
+        <span class="seg" id="lakedim"><button data-v="2">2D</button><button data-v="3">3D</button></span>
+        <span class="seg" id="lakekind"><button data-v="table">Tables</button><button data-v="column">Columns</button></span>
+        <button class="iconbtn" id="lakefollow" title="Follow the search again">&#8982;</button>
+        <button class="iconbtn" data-big="lake" title="Expand"></button>
+      </span>
+    </div>
+    <div class="lakestage">
+      <canvas id="lakemap"></canvas>
+      <div class="lakehelp" id="lakehelp"></div>
+      <div class="lakeinfo" id="lakeinfo" hidden></div>
+    </div>
+  </section>
+  <section class="pane" id="diagcard">
+    <div class="cardhead maphead">
+      <b>Search</b><span class="note" id="mapq"></span>
+      <span class="tools"><button class="iconbtn" data-big="diag" title="Expand"></button></span>
+      <div id="mapnow"></div>
+      <div class="legend"><span class="seen"><i></i>considered</span><span class="kept"><i></i>kept by the judge</span><span class="drop"><i></i>dropped</span><span class="pick"><i></i>chosen</span><span class="join"><i></i>join</span></div>
+    </div>
+    <div class="cardscroll">
+      <div id="mapbody">
+        <svg id="mapedges"></svg>
+        <div class="lanes">
+          <div class="lane"><div class="lanehead">Parts</div><div class="lane" id="lparts"></div></div>
+          <div class="lane"><div class="lanehead">Places</div><div class="lane" id="ltables"></div></div>
+          <div class="lane"><div class="lanehead">Interpretations</div><div class="lane" id="linterps"></div></div>
+        </div>
+        <div class="mapempty" id="mapempty">The map fills in as the search runs.</div>
+      </div>
+    </div>
+  </section>
+</aside>
+
+<main id="start">
+  <h1>What do you want to find?</h1>
+  <form class="box" id="startform">
+    <textarea id="q" rows="1" placeholder="Ask a question about this lake" aria-label="Question"></textarea>
+    <button class="send" id="go" aria-label="Send" disabled>↑</button>
+  </form>
+  <button class="link" id="pick">or pick a benchmark question</button>
+  <div class="err" id="starterr" hidden></div>
+</main>
+
+<main id="chat" hidden></main>
+
+<div id="composer" hidden>
+  <form class="box" id="replyform">
+    <textarea id="reply" rows="1" placeholder="Type a new question" aria-label="Reply"></textarea>
+    <button class="send" id="replygo" aria-label="Send">↑</button>
+  </form>
+</div>
+
+<aside id="side" aria-label="Place contents"></aside>
+
+<div id="picker" hidden>
+  <div class="sheet">
+    <input id="pickq" type="search" placeholder="Search the benchmark questions" aria-label="Search questions">
+    <ul id="picklist"></ul>
+  </div>
+</div>
+
+<script>
+'use strict';
+const $ = (id) => document.getElementById(id);
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+const enc = encodeURIComponent;
+const fmt = (sec) => { sec = Math.max(0, Math.floor(sec || 0)); return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; };
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+
+// every request goes through here: a non-2xx answer throws with the server's own words
+let runNumber = null;
+async function api(url, body) {
+  if (body !== undefined) firstLoad = false;
+  const r = body === undefined ? await fetch(url)
+    : await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ run: runNumber, ...body }) });
+  let data = null;
+  try { data = await r.json(); } catch (e) {}
+  if (!r.ok) throw new Error((data && data.error) || r.statusText || 'HTTP ' + r.status);
+  return data;
+}
+
+// ---- lake, model, questions ----
+let lake = '', questions = [];
+async function loadLakes() {
+  const lakes = await api('/lakes');
+  const sel = $('lakesel'); sel.replaceChildren();
+  for (const name of lakes) { const o = el('option', null, name); o.value = name; sel.append(o); }
+  const saved = store.get('amigo.lake');
+  lake = lakes.includes(saved) ? saved : lakes[0];
+  sel.value = lake;
+  loadQuestions();
+}
+$('lakesel').addEventListener('change', () => { lake = $('lakesel').value; answers = []; chosenId = null; setLive(live); store.set('amigo.lake', lake); loadQuestions(); });
+async function loadQuestions() {
+  questions = [];
+  lakeLoad(lake);
+  try { questions = await api('/questions?lake=' + enc(lake)); } catch (e) {}
+  $('pick').hidden = !questions.length;
+}
+// thinking: "none" is off; null is each step's own level (high to split the question,
+// medium for the judge, low for wording); any other level is used by every call
+let lastEffort = null;
+async function loadSettings() {
+  try {
+    const s = await api('/settings');
+    const sel = $('modelsel'); sel.replaceChildren();
+    for (const name of Object.keys(s.models)) { const o = el('option', null, name); o.value = name; sel.append(o); }
+    sel.value = s.model;
+    const levels = s.efforts[s.model], think = $('thinkbtn'), effort = $('effortsel');
+    modelLevels = levels || [];
+    think.hidden = effort.hidden = !levels;
+    if (!levels) return;
+    const on = s.thinking !== 'none';
+    think.textContent = on ? 'Thinking on' : 'Thinking off';
+    think.classList.toggle('on', on);
+    think.disabled = !levels.includes('none');
+    think.title = think.disabled ? 'This model always thinks' : 'Whether the model reasons before it answers';
+    effort.replaceChildren();
+    const auto = el('option', null, 'Effort: each step\'s own'); auto.value = ''; effort.append(auto);
+    for (const level of levels.filter((l) => l !== 'none')) { const o = el('option', null, 'Effort: ' + level); o.value = level; effort.append(o); }
+    effort.value = on && s.thinking ? s.thinking : '';
+    effort.hidden = !on;
+  } catch (e) {}
+}
+async function setSettings(body) {
+  try { await api('/settings', body); } catch (e) { say(e.message, 'bad'); }
+  loadSettings();
+}
+$('modelsel').addEventListener('change', () => setSettings({ model: $('modelsel').value }));
+$('thinkbtn').addEventListener('click', () => {
+  const on = $('thinkbtn').classList.contains('on');
+  if (on) lastEffort = $('effortsel').value || null;
+  setSettings({ model: $('modelsel').value, thinking: on ? 'none' : modelLevels.includes(lastEffort) ? lastEffort : null });
+});
+$('effortsel').addEventListener('change', () => setSettings({ model: $('modelsel').value, thinking: $('effortsel').value || null }));
+
+// the benchmark question list
+function openPicker() {
+  $('picker').hidden = false; $('pickq').value = ''; fillPicker(); $('pickq').focus();
+}
+function fillPicker() {
+  const words = $('pickq').value.toLowerCase().split(/\s+/).filter(Boolean);
+  const list = $('picklist'); list.replaceChildren();
+  for (const q of questions.filter((q) => words.every((w) => q.toLowerCase().includes(w))).slice(0, 300)) {
+    const b = el('button', null, q);
+    b.addEventListener('click', () => { $('picker').hidden = true; $('q').value = q; grow($('q')); refreshGo(); $('q').focus(); });
+    const li = el('li'); li.append(b); list.append(li);
+  }
+}
+$('pick').addEventListener('click', openPicker);
+$('pickq').addEventListener('input', fillPicker);
+$('picker').addEventListener('click', (e) => { if (e.target === $('picker')) $('picker').hidden = true; });
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (!$('picker').hidden) $('picker').hidden = true;
+  else closeSide();
+});
+
+// ---- the two text boxes ----
+function grow(t) { t.style.height = 'auto'; if (t.scrollHeight) t.style.height = Math.min(t.scrollHeight, 200) + 'px'; }
+function refreshGo() { $('go').disabled = !$('q').value.trim(); }
+for (const [box, form] of [['q', 'startform'], ['reply', 'replyform']]) {
+  $(box).addEventListener('input', () => { grow($(box)); refreshGo(); });
+  $(box).addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!live || $(box).value.trim()) $(form).requestSubmit(); } });
+}
+$('startform').addEventListener('submit', (e) => { e.preventDefault(); const q = $('q').value.trim(); if (q) startRun(q); });
+$('replyform').addEventListener('submit', (e) => {
+  e.preventDefault();
+  if (live) { if (!$('reply').value.trim()) cancelRun(); else typed($('reply').value.trim()); return; }
+  const q = $('reply').value.trim();
+  if (!q) return;
+  $('reply').value = ''; grow($('reply'));
+  if (routing) return;
+  if (answers.length) followUp(q); else startRun(q);
+});
+
+// ---- view: normal or verbose ----
+function setView(v) {
+  document.body.classList.toggle('verbose', v === 'verbose');
+  for (const b of $('viewseg').children) b.classList.toggle('on', b.dataset.v === v);
+  store.set('amigo.view', v);
+}
+$('viewseg').addEventListener('click', (e) => { if (e.target.dataset.v) setView(e.target.dataset.v); });
+setView(store.get('amigo.view') || 'normal');
+
+// ---- the chat ----
+const chat = $('chat');
+let liveLine = null, logBox = null;
+function showChat() {
+  $('start').hidden = true; chat.hidden = false; $('composer').hidden = false;
+  document.body.classList.add('chatting'); $('mapbtn').hidden = false; mapSoon();
+  $('viewseg').hidden = false; $('newchat').hidden = false; $('stat').hidden = false;
+}
+function showStart() {
+  if (live || routing) return;
+  stopClock(); 
+  if (source) source.close();
+  chat.replaceChildren(); chat.hidden = true; $('composer').hidden = true;
+  $('viewseg').hidden = true; $('newchat').hidden = true; $('stat').hidden = true;
+  $('start').hidden = false; closeSide(); $('q').focus();
+  document.body.classList.remove('chatting'); $('mapbtn').hidden = true;
+  viewChat = null; oldView = false; answers = []; chosenId = null; mapReset(''); drawNav();
+}
+$('home').addEventListener('click', showStart);
+$('newchat').addEventListener('click', showStart);
+const nearBottom = () => window.innerHeight + window.scrollY > document.body.scrollHeight - 220;
+function add(node) {
+  const follow = nearBottom();
+  if (liveLine && liveLine.parentNode === chat) chat.insertBefore(node, liveLine); else chat.append(node);
+  if (follow) node.scrollIntoView({ block: 'end', behavior: 'smooth' });
+  return node;
+}
+function me(text) { logBox = null; return add(el('div', 'me', text)); }
+function bot(stepText) {
+  logBox = null;
+  const b = el('div', 'bot');
+  if (stepText) b.append(el('div', 'step', stepText));
+  return add(b);
+}
+function say(text, cls) { const b = bot(); b.append(el('p', cls || null, text)); return b; }
+// the animated line under the chat, saying what runs now; null hides it
+function working(text) {
+  if (text == null) { if (liveLine) liveLine.remove(); liveLine = null; return; }
+  if (!liveLine) {
+    liveLine = el('div'); liveLine.id = 'live';
+    const dots = el('span', 'dots'); dots.append(el('i'), el('i'), el('i'));
+    liveLine.append(dots, el('span'));
+  }
+  liveLine.lastChild.textContent = text;
+  mapNow(text);
+  if (liveLine.parentNode !== chat) chat.append(liveLine);
+  if (nearBottom()) liveLine.scrollIntoView({ block: 'end' });
+}
+// verbose only: the pipeline's own log lines, grouped under the last message
+function logLine(text, cls) {
+  if (!logBox) { logBox = el('div', 'log mono verbose-only'); add(logBox); }
+  const line = el('div', cls || null, text);
+  logBox.append(line);
+  logBox.scrollTop = logBox.scrollHeight;
+}
+
+// ---- run state ----
+let source = null, live = false, clock = null, clockStart = 0, usageTimer = null;
+let parts = [];                       // the parts with their values, in order
+let placeCards = null;                // the places card: per part, its rows
+let placesOpen = false;               // the person may keep or drop places now
+let fork = null, forkBox = null;      // the question on screen, and its message
+let interps = new Map(), pickBox = null;
+let restartWith = null;
+let firstLoad = true;     // the events replayed on page load, until the person acts
+let answers = [], chosenId = null;  // the run's answered interpretations, and the one kept
+let following = null;     // a follow-up sent: its route, so the run it starts is not shown twice
+let routing = false;      // a follow-up is being routed: no second one, no new chat until it starts
+let modelLevels = [];     // the thinking levels of the model in use
+let R = null;             // the run drawn last: its question and the person's decisions so far
+
+function resetRun() {
+  parts = []; placeCards = null; placesOpen = false; fork = null; forkBox = null;
+  interps = new Map(); pickBox = null; restartWith = null; logBox = null; answered = null;
+  answers = []; chosenId = null;
+}
+async function startRun(question, replay) {
+  $('starterr').hidden = true; firstLoad = false;
+  try {
+    runNumber = (await api('/ask', { lake, question, check: true, guided: true, chat: viewChat, replay })).run;
+  } catch (e) {
+    if (chat.hidden) { $('starterr').textContent = 'The run did not start: ' + e.message; $('starterr').hidden = false; }
+    else say('The run did not start: ' + e.message, 'bad');
+    return;
+  }
+  $('q').value = ''; $('reply').value = ''; grow($('reply')); refreshGo();
+  listen();
+  return true;
+}
+async function cancelRun() {
+  try { await api('/cancel', {}); } catch (e) { say(e.message, 'bad'); }
+}
+function setLive(on) {
+  live = on;
+  $('replygo').classList.toggle('stop', on);
+  $('replygo').textContent = on ? '' : '↑';
+  $('replygo').setAttribute('aria-label', on ? 'Stop the run, or send what you typed' : 'Send');
+  $('reply').placeholder = on ? 'Answer in your own words, or press the square to stop'
+    : answers.length ? 'Ask a follow-up about this answer' : oldView ? 'Ask a new question in this chat' : 'Type a new question';
+  $('lakesel').disabled = on;
+}
+function startClock(t) {
+  clockStart = performance.now() - (t || 0) * 1000;
+  clearInterval(clock); clearInterval(usageTimer);
+  clock = setInterval(showStat, 1000);
+  usageTimer = setInterval(loadUsage, 4000);
+  calls = 0; showStat();
+}
+function stopClock(t) {
+  if (t != null) clockStart = performance.now() - t * 1000;
+  clearInterval(clock); clearInterval(usageTimer); clock = null;
+  loadUsage(); showStat();
+}
+let calls = 0, stopped = 0;
+function showStat() {
+  const sec = clock ? (performance.now() - clockStart) / 1000 : stopped;
+  if (clock) stopped = sec;
+  $('stat').textContent = `${fmt(sec)} · ${calls} LLM call${calls === 1 ? '' : 's'}`;
+}
+async function loadUsage() {
+  if (replaying || oldView) return;  // the server counts its current run only
+  try { calls = (await api('/usage')).run.calls; showStat(); } catch (e) {}
+}
+
+function listen() {
+  if (source) source.close();
+  const mine = source = new EventSource('/events');
+  let chain = Promise.resolve(), seen = 0, n = 0;
+  // a reconnect replays the run from its start: skip what was already drawn
+  source.onopen = () => { n = 0; };
+  source.onmessage = (m) => {
+    if (++n <= seen) return;
+    seen = n;
+    // the replay on page load comes at once; after it, the run is the person's
+    if (seen === 1 && firstLoad) setTimeout(() => { firstLoad = false; }, 1000);
+    const ev = JSON.parse(m.data);
+    if (clock && ev.t != null) clockStart = Math.min(clockStart, performance.now() - ev.t * 1000);
+    chain = chain.then(() => source === mine && handle(ev)).catch((err) => console.error('event', ev.type, err));
+  };
+  source.onerror = () => {};
+}
+function handle(ev) { return (on[ev.type] || (() => {}))(ev); }
+
+const literalText = (l) => {
+  if (!l) return '';
+  if (l.kind === 'number') return String(l.number);
+  if (l.kind === 'text') return l.text || '';
+  if (l.date_start && l.date_end) return l.date_start === l.date_end ? l.date_start : `${l.date_start} to ${l.date_end}`;
+  return l.date_start ? `from ${l.date_start}` : `until ${l.date_end}`;
+};
+function parseValue(s) {
+  s = s.trim();
+  if (!s) return null;
+  const blank = { text: null, number: null, date_start: null, date_end: null };
+  if (/^-?\d+(\.\d+)?$/.test(s)) return { ...blank, kind: 'number', number: Number(s) };
+  const d = '(\\d{4}-\\d{2}-\\d{2})';
+  let m = s.match(new RegExp(`^${d}(?: to ${d})?$`));
+  if (m) return { ...blank, kind: 'date', date_start: m[1], date_end: m[2] || m[1] };
+  m = s.match(new RegExp(`^(from|until) ${d}$`));
+  if (m) return { ...blank, kind: 'date', [m[1] === 'from' ? 'date_start' : 'date_end']: m[2] };
+  return { ...blank, kind: 'text', text: s };
+}
+const partLabel = (p) => p.attribute + (p.literal ? ` = "${literalText(p.literal)}"` : '');
+
+const on = {
+  idle() { source.close(); },
+  run(ev) {
+    R = { question: ev.question, forks: [] };
+    // what an earlier run left open belongs to it: a click there would act on this one
+    for (const x of chat.querySelectorAll('button.act, input.act')) x.disabled = true;
+    resetRun(); showChat(); setLive(true); startClock(ev.t);
+    mapReset(ev.question);
+    if (ev.chat) viewChat = ev.chat;
+    if (!replaying) { oldView = false; $('stat').hidden = false; setTimeout(loadChats, 400); }
+    if (ev.lake && ev.lake !== lake && [...$('lakesel').options].some((o) => o.value === ev.lake)) { lake = ev.lake; $('lakesel').value = lake; loadQuestions(); }
+    // a follow-up's own words are already in the chat, and its question with its route
+    if (!following) me(ev.question);
+    working('Splitting the question into parts');
+  },
+  route(ev) {
+    if (!following) { if (ev.said) me(ev.said); showRoute(ev, null); }
+    following = null;
+    if (ev.route === 'rewrite') working('Rewriting the SQL');
+  },
+  held() { working('Waiting for the stopped run: its LLM calls must come back first'); },
+  log(ev) { logLine(ev.text); },
+
+  // step 1: the parts, checked by the person
+  parts_paused(ev) { partsStep(ev.entities); reveal(partsBox); working(null); mapParts(ev.entities); mapNow('Waiting for you: check the parts'); },
+  bundle(ev) {
+    parts = ev.entities; mapParts(ev.entities);
+    if (R) R.parts = ev.entities;
+    lockParts(ev.entities);
+    logLine(`Searched ${ev.tables.length} table${ev.tables.length === 1 ? '' : 's'} for the parts`);
+    for (const nf of ev.not_found || []) {
+      say(`"${nf.written}" was not found as a value in this lake.` + (nf.near.length ? ' Nearest columns: ' + nf.near.join(', ') : ''), 'note');
+    }
+    working('Finding places for each part');
+  },
+
+  // step 2: the places, then step 3: the judge
+  candidates(ev) { placesStep(ev.parts); mapPlaces(ev.parts); working('The judge reads each place'); },
+  places(ev) {
+    mapPlaces(ev.parts);
+    if (!placeCards) placesStep(ev.parts);
+    verdicts(ev.parts, !!ev.edited);
+    if (ev.edited) working('Building the interpretations from your places');
+  },
+  places_paused() { openPlaces(); reveal(placeCards && placeCards.box); working(null); mapNow('Waiting for you: keep or drop places'); },
+
+  // step 4: the guided search asks at each fork
+  fork(ev) { closePlaces(); showFork(ev); if (!ev.replayed) reveal(forkBox); working(null); mapFork(ev); },
+  answered(ev) {
+    const before = R && decided(ev.step);
+    if (R) { R.forks.length = ev.step; R.forks.push({ action: ev.action, ids: ev.ids }); }
+    // a click here already drew it and closed the fork; a saved chat or a reload did not
+    if (!fork || fork.step !== ev.step) return;
+    const was = fork; closeFork(); answered = was; mapAnswer(was, ev);
+    const m = me(ev.text); m.dataset.step = was.step;
+    changeLink(m, 'change this answer', before, was.step);
+  },
+  approved(ev) {
+    const m = approvedHere || me(ev.kept == null ? 'Approved as the judge said' : `Approved, with my changes (${ev.kept} places kept)`);
+    approvedHere = null;
+    if (!R) return;
+    changeLink(m, 'change the places', { parts: R.parts });
+    // a chat saved before the kept places were stored can replay the judge's choice only
+    if (ev.keep !== undefined || ev.kept == null) R.places = ev.keep ?? null;
+  },
+  guide_note(ev) { answered = null; say(ev.text, 'note'); },
+  restart(ev) { restartWith = ev.question; say('Starting over with: ' + ev.question); },
+  interpretations(ev) { closePlaces(); if (fork) closeFork(); showInterps(ev); mapInterps(ev.interpretations || []); },
+  paused(ev) { openPick(ev.ids); reveal(pickBox && pickBox.b); working(null); mapNow('Waiting for you: tick the interpretations to run'); },
+
+  // step 5: SQL and rows
+  selected(ev) {
+    // a rewrite starts blank: the interpretation it queries again comes with it
+    if (ev.interpretations) { interps = new Map(ev.interpretations.map((one) => [one.id, one])); parts = ev.entities; mapParts(ev.entities); mapInterps(ev.interpretations); }
+    mapSelected(ev.ids);
+    closePick(ev.ids); if (ev.ids.length) working('Writing SQL');
+  },
+  querying(ev) { working('Writing SQL for ' + name(ev.id)); mapInterp(ev.id, 'running'); },
+  sql(ev) { logLine(ev.error != null ? `${ev.id} try ${ev.attempt}: ${ev.error}` : `${ev.id} try ${ev.attempt}: ${ev.rows} rows`, ev.error != null ? 'bad' : null); },
+  rows(ev) {
+    showRows(ev);
+    const one = ev.rows && ev.rows.length === 1 && ev.rows[0].length === 1 ? String(ev.rows[0][0] ?? 'NULL')
+      : `${(ev.rows || []).length}${ev.more ? '+' : ''} row${(ev.rows || []).length === 1 ? '' : 's'}`;
+    mapInterp(ev.id, ev.error != null ? 'failed' : 'answered', ev.error != null ? 'the query failed' : one);
+  },
+  chosen(ev) { chosenId = ev.id; say(`Following up on ${name(ev.id).replace(/^I/, 'i')}.`, 'note'); },
+
+  done(ev) {
+    if (finish(ev.t)) return;
+    const b = bot(); b.className = 'bot verbose-only';
+    b.append(el('pre', 'mono', ev.text));
+    mapNow('Done');
+    if (replaying) return;  // a saved chat is only drawn: its calls are gone, nothing starts again
+    showCalls(); loadChats();
+    if (restartWith) { const q = restartWith; restartWith = null; startRun(q); }
+  },
+  error(ev) { if (!finish(ev.t)) say('The run hit an error: ' + ev.text, 'bad'); mapNow('The run hit an error'); if (!replaying) loadChats(); },
+  cancelled(ev) { answers = []; chosenId = null; if (!finish(ev.t)) say('Stopped.', 'note'); mapNow('Stopped'); if (!replaying) loadChats(); },
+};
+// true when the run was only replayed on page load: then the page opens on a new chat instead
+function finish(t) {
+  revealNext = false;
+  if (firstLoad) { firstLoad = false; setLive(false); if (source) source.close(); showStart(); return true; }
+  following = null;
+  if (!answers.length && chat.querySelector('.bot')) say('No answer to follow up on: what you type next starts a new search.', 'note');
+  setLive(false); stopClock(t); working(null); placesOpen = false;
+  if (source) source.close();
+  M.ask = null; for (const one of M.interps.values()) if (one.state === 'running') one.state = 'chosen';
+  mapDraw();
+  for (const b of chat.querySelectorAll('button.act, input.act')) b.disabled = true;
+}
+
+// ---- step 1 ----
+let partsBox = null, approvedHere = null;  // the bubble the Approve click drew
+function partsStep(list) {
+  const b = bot('Step 1 · Parts of the question');
+  b.append(el('p', 'note', 'Each part is something the question asks for or filters on, with its value if it has one. Change them if they are wrong, then go on.'));
+  const row = el('div', 'parts');
+  const addBtn = el('button', 'part add act', '+ add a part');
+  const addPart = (p) => {
+    const chip = el('span', 'part');
+    const attr = el('input', 'attr'); attr.value = p ? p.attribute : ''; attr.placeholder = 'part'; attr.setAttribute('aria-label', 'Part');
+    const val = el('input', 'val'); val.value = p && p.literal ? literalText(p.literal) : ''; val.placeholder = 'no value'; val.setAttribute('aria-label', 'Value');
+    const x = el('button', 'x act', '×'); x.title = 'Remove this part';
+    const wrote = val.value;
+    chip._read = () => ({ attribute: attr.value.trim(), literal: val.value.trim() === wrote && p && p.literal ? p.literal : parseValue(val.value) });
+    const size = () => { attr.size = Math.max(4, attr.value.length + 1); val.size = Math.max(7, val.value.length + 1); };
+    attr.addEventListener('input', size); val.addEventListener('input', size); size();
+    for (const i of [attr, val]) i.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go.click(); } });
+    x.addEventListener('click', () => chip.remove());
+    chip.append(attr, el('span', 'eq', '='), val, x);
+    row.insertBefore(chip, addBtn);
+    return attr;
+  };
+  row.append(addBtn);
+  list.forEach(addPart);
+  addBtn.addEventListener('click', () => addPart(null).focus());
+  const go = el('button', 'btn act', 'Proceed');
+  go.addEventListener('click', async () => {
+    const given = [...row.querySelectorAll('.part:not(.add)')].map((c) => c._read()).filter((p) => p.attribute);
+    go.disabled = true;
+    working('Searching the lake with these parts');
+    try { await api('/parts', { entities: given }); }
+    catch (e) { working(null); go.disabled = false; say(e.message, 'bad'); }
+  });
+  const r = el('div', 'row'); r.append(go);
+  b.append(row, r);
+  partsBox = b;
+  go.focus({ preventScroll: true });
+}
+function lockParts(list) {
+  // the chips show the parts the search used, which the person may have changed
+  const old = partsBox;
+  partsStep(list);
+  if (old) old.replaceWith(partsBox);
+  partsBox.classList.add('locked');
+  for (const i of partsBox.querySelectorAll('input, button')) i.disabled = true;
+  partsBox.querySelector('.row').remove();
+  if (R) changeLink(partsBox, 'change the parts', {});
+  partsBox = null;
+}
+
+// ---- going back to an earlier decision ----
+// what the person decided before fork `step` (all of it when `step` is null), for a run that
+// takes those again without asking and asks from there
+function decided(step) {
+  const d = { parts: R.parts, forks: R.forks.slice(0, step ?? R.forks.length) };
+  if (R.places !== undefined) d.places = R.places;
+  return d;
+}
+function changeLink(box, label, replay, step) {
+  const rec = R, b = el('button', 'back', label);
+  b.addEventListener('click', () => change(rec, replay, step, b));
+  box.append(b);
+}
+// after a change, the first step that asks again is brought on screen: a replayed run draws
+// its steps faster than the chat can follow them down. Till then a second change is not
+// taken, as it would stop the run the first one started.
+let revealNext = false;
+function reveal(box) {
+  if (!revealNext || !box) return;
+  revealNext = false;
+  box.scrollIntoView({ block: 'start' });
+}
+async function change(rec, replay, step, btn) {
+  if (revealNext) return;
+  // the run on screen still waits at a fork or its ticks: walk back inside it, nothing runs again
+  if (step != null && rec === R && live && (fork || pickBox)) return goBack(step, btn);
+  revealNext = true;
+  // the run stopped here is not followed any more: its end would end this change too
+  if (live) { if (source) source.close(); try { await api('/cancel', {}); } catch (e) {} }
+  say('Starting this search again from that step: what you decided before it is kept, and you are asked again from there.', 'note');
+  // the new run is drawn at the end of the chat, often far below the link
+  window.scrollTo(0, document.body.scrollHeight);
+  // no new run: the stopped one is no longer followed, so it is ended here
+  if (!await startRun(rec.question, replay)) { revealNext = false; if (live) finish(); }
+}
+
+// ---- steps 2 and 3 ----
+const itemName = (it) => `${it.table_name}.${it.name}`;
+const SHOW = 10;   // places shown per part before "show all"
+function valueMark(it, part) {
+  const l = part && part.literal;
+  if (!l) return null;
+  const v = literalText(l);
+  return it.hit && it.hit.length ? el('span', 'val y', 'has ' + it.hit[0]) : el('span', 'val n', 'no ' + v);
+}
+function placesStep(list) {
+  const b = bot('Step 2 · Places for each part');
+  b.append(el('p', 'note', 'For each part, the columns that may hold it. The bar is how close its meaning is to the part (cosine of the embeddings, 1 is the same). Click a name to see its rows.'));
+  const cols = el('div', 'cols');
+  b.append(cols);
+  placeCards = list.map((p, j) => {
+    const part = parts[j];
+    const col = el('div', 'col');
+    const h = el('h4'); h.append(el('span', null, part ? partLabel(part) : p.part), el('small', null, `${p.items.length} places`));
+    col.append(h);
+    cols.append(col);
+    setTimeout(() => col.classList.add('in'), 60 + j * 260);
+    const rows = p.items.map((it, i) => {
+      const row = el('div', 'cand');
+      const mark = el('button', 'mark act'); mark.disabled = true; mark.title = 'Keep or drop this place';
+      const nm = el('button', 'name');
+      nm.append(document.createTextNode(itemName(it)), el('small', null, ` · ${it.database}`));
+      nm.title = `${it.database}.${itemName(it)}, ${it.rows} rows`;
+      nm.addEventListener('click', () => openSide(it, part, row));
+      const meta = el('span', 'meta');
+      const bar = el('span', 'bar'); const fill = el('i'); fill.style.width = Math.max(0, Math.min(1, it.score)) * 100 + '%'; bar.append(fill);
+      meta.append(bar, el('span', 'score', it.score.toFixed(2)));
+      const v = valueMark(it, part); if (v) meta.append(v);
+      row.append(mark, nm, meta, el('span', 'why verbose-only', it.why || ''));
+      mark.addEventListener('click', () => {
+        if (!placesOpen) return;
+        row.keep = !row.keep;
+        row.classList.toggle('yes', row.keep); row.classList.toggle('no', !row.keep);
+        row.classList.toggle('edited', row.keep !== row.judged);
+        countKept();
+      });
+      col.append(row);
+      // the first ones slowly, one after the other, after their column slides in; the rest
+      // wait behind "show more" unless the judge keeps them
+      if (i >= SHOW) row.classList.add('later');
+      row.shownAt = performance.now() + 360 + j * 260 + Math.min(i, SHOW) * 110;
+      setTimeout(() => row.classList.add('in'), row.shownAt - performance.now());
+      row.item = it; it.lake = lake;
+      return row;
+    });
+    if (p.items.length > SHOW) {
+      const more = el('button', 'link more', `show all ${p.items.length}`);
+      more.addEventListener('click', () => { const all = col.classList.toggle('all'); more.textContent = all ? 'show fewer' : `show all ${p.items.length}`; });
+      col.append(more);
+    }
+    return { col, rows, head: h };
+  });
+  b.append(el('div', 'row'));
+  placeCards.box = b;
+}
+function verdicts(list, edited) {
+  const now = performance.now();
+  list.forEach((p, j) => p.items.forEach((it, i) => {
+    const row = placeCards[j] && placeCards[j].rows[i];
+    if (!row || it.yes == null) return;
+    if (!edited) row.judged = it.yes;
+    row.keep = it.yes;
+    // each column's marks come one by one, its first places first
+    const at = Math.max(0, row.shownAt + 450 - now) + Math.min(i, SHOW) * 90;
+    setTimeout(() => {
+      if (it.yes) row.classList.remove('later');
+      row.classList.remove('yes', 'no'); row.classList.add(row.keep ? 'yes' : 'no', 'flip');
+      row.classList.toggle('edited', row.keep !== row.judged);
+    }, edited ? 0 : at);
+  }));
+  if (!edited) {
+    const kept = list.reduce((n, p) => n + p.items.filter((it) => it.yes).length, 0);
+    const all = list.reduce((n, p) => n + p.items.length, 0);
+    const b = placeCards.box;
+    const step = el('div', 'step', 'Step 3 · The judge');
+    step.style.marginTop = '12px';
+    const line = el('p', null, `The judge (one LLM call) kept ${kept} of ${all} places.`);
+    b.lastChild.replaceWith(step, line, el('div', 'row'));
+    placeCards.line = line;
+  }
+}
+function countKept() {
+  placeCards.forEach((c) => { c.head.lastChild.textContent = `${c.rows.filter((r) => r.keep).length} of ${c.rows.length} kept`; });
+}
+function openPlaces() {
+  if (!placeCards) return;
+  placesOpen = true;
+  const b = placeCards.box;
+  b.classList.add('editable');
+  for (const c of placeCards) for (const r of c.rows) r.querySelector('.mark').disabled = false;
+  countKept();
+  placeCards.line.textContent += ' Click a circle to keep or drop a place, then approve.';
+  const ok = el('button', 'btn act', 'Approve');
+  const undo = el('button', 'btn line act', 'Back to the judge\'s choice');
+  undo.addEventListener('click', () => {
+    for (const c of placeCards) for (const r of c.rows) { r.keep = r.judged; r.classList.toggle('yes', r.keep); r.classList.toggle('no', !r.keep); r.classList.remove('edited'); }
+    countKept();
+  });
+  ok.addEventListener('click', async () => {
+    const changed = placeCards.some((c) => c.rows.some((r) => r.keep !== r.judged));
+    const keep = changed ? placeCards.map((c) => c.rows.filter((r) => r.keep).map((r) => [r.item.table, r.item.column])) : null;
+    ok.disabled = undo.disabled = true;
+    const n = placeCards.reduce((s, c) => s + c.rows.filter((r) => r.keep).length, 0);
+    // the bubble goes first, so it sits above what the request sets off
+    const m = me(changed ? `Approved, with my changes (${n} places kept)` : 'Approved as the judge said');
+    approvedHere = m;  // the approved event then draws no second bubble
+    working('Searching for ways to answer');
+    try { await api('/approve', { keep }); }
+    catch (e) { approvedHere = null; m.remove(); working(null); ok.disabled = undo.disabled = false; say(e.message, 'bad'); return; }
+    closePlaces();
+  });
+  const r = b.lastChild; r.append(ok, undo);
+}
+
+function closePlaces() {
+  if (!placeCards) return;
+  placesOpen = false; placeCards.box.classList.remove('editable');
+  for (const x of placeCards.box.querySelectorAll('.mark, button.act')) x.disabled = true;
+}
+
+// ---- side panel: one place's rows ----
+let sideState = null;
+function openSide(it, part, row) {
+  for (const r of chat.querySelectorAll('.cand.open')) r.classList.remove('open');
+  row.classList.add('open');
+  const hit = it.hit && it.hit.length ? it.hit[0] : '';
+  sideState = { it, q: hit, page: 0, row };
+  document.body.classList.add('side-open');
+  loadSide();
+}
+function closeSide() {
+  document.body.classList.remove('side-open');
+  for (const r of chat.querySelectorAll('.cand.open')) r.classList.remove('open');
+  sideState = null;
+}
+async function loadSide() {
+  const st = sideState; if (!st) return;
+  const it = st.it, side = $('side');
+  let data;
+  try { data = await api(`/rows?lake=${enc(it.lake || lake)}&table=${it.table}&q=${enc(st.q)}&page=${st.page}`); }
+  catch (e) { side.replaceChildren(el('p', 'bad', e.message)); return; }
+  if (sideState !== st) return;
+  const x = el('button', 'x', '×'); x.setAttribute('aria-label', 'Close'); x.addEventListener('click', closeSide);
+  const head = el('h3', null, itemName(it));
+  const sub = el('p', 'note', `${it.database} · ${it.rows} rows` + ` · ${it.distinct} distinct values`);
+  const why = el('p', 'note', it.why || '');
+  const search = el('input'); search.type = 'search'; search.placeholder = 'Search the rows'; search.value = st.q;
+  let timer = null;
+  search.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => { st.q = search.value; st.page = 0; loadSide(); }, 250); });
+  const count = el('p', 'note', st.q ? `${data.matched} of ${data.total} rows hold "${st.q}"` : `Page ${data.page + 1} of ${data.pages}`);
+  const t = el('table', 'rows'); const tr = el('tr');
+  const hl = data.columns.indexOf(it.name);
+  data.columns.forEach((c, i) => tr.append(el('th', i === hl ? 'hl' : null, c)));
+  t.append(tr);
+  for (const r of data.rows) { const row = el('tr'); r.forEach((v, i) => row.append(el('td', i === hl ? 'hl' : null, v ?? 'NULL'))); t.append(row); }
+  const pager = el('div', 'row');
+  const prev = el('button', 'btn line', 'Previous'); prev.disabled = data.page === 0;
+  const next = el('button', 'btn line', 'Next'); next.disabled = data.page >= data.pages - 1;
+  prev.addEventListener('click', () => { st.page--; loadSide(); });
+  next.addEventListener('click', () => { st.page++; loadSide(); });
+  pager.append(prev, next);
+  const wrap = el('div'); wrap.style.overflowX = 'auto'; wrap.append(t);
+  side.replaceChildren(x, head, sub, why, search, count, wrap, pager);
+  if (document.activeElement === document.body) search.focus({ preventScroll: true });
+}
+
+// ---- step 4: the guided search ----
+const share = (s) => (s == null ? '' : s < 0.01 ? 'under 1% of the ways' : `${Math.round(s * 100)}% of the ways`);
+const sameFork = (a, b) => !!a && !!b && a.step === b.step && a.fork === b.fork && a.part === b.part;
+let answered = null;   // the fork just answered: a late reworded copy of it is not shown
+function showFork(ev) {
+  if (answered && sameFork(ev, answered)) return;
+  const again = sameFork(ev, fork) && forkBox;
+  if (!again) closeFork();
+  fork = ev;
+  const b = again ? forkBox : bot(`Question ${ev.step + 1} · ${ev.about}`);
+  if (again) b.replaceChildren(el('div', 'step', `Question ${ev.step + 1} · ${ev.about}`));
+  forkBox = b;
+  const q = el('p', null, ev.question);
+  if (!ev.worded) q.append(el('span', 'wording', '  (putting it in plain words…)'));
+  b.append(q);
+  for (const n of ev.notes || []) b.append(el('p', 'note verbose-only', 'Not asked: ' + n));
+  // a click on an option shows the rows it reads; its box ticks it; Proceed goes on with
+  // the ticked ones. The ticks and the open look survive the question being reworded.
+  const ticks = again && b._ticks ? b._ticks : new Set();
+  b._ticks = ticks;
+  const opts = el('div', 'opts');
+  const go = el('button', 'btn act', 'Proceed');
+  const tally = () => {
+    go.disabled = !ticks.size;
+    go.textContent = ticks.size > 1 ? `Proceed with these ${ticks.size}` : 'Proceed';
+  };
+  const peekable = ev.fork !== 'missing';
+  ev.options.forEach((o) => {
+    const wrap = el('div');
+    const row = el('div', 'opt');
+    const tick = el('input', 'act'); tick.type = 'checkbox'; tick.checked = ticks.has(o.id);
+    tick.setAttribute('aria-label', 'Choose: ' + o.label);
+    row.classList.toggle('ticked', tick.checked);
+    tick.addEventListener('change', () => {
+      // a missing part takes one answer: a new tick clears the others
+      if (tick.checked && !peekable) {
+        for (const other of opts.querySelectorAll('input.act')) if (other !== tick) other.checked = false;
+        for (const other of opts.querySelectorAll('.opt')) other.classList.remove('ticked');
+        ticks.clear();
+      }
+      if (tick.checked) ticks.add(o.id); else ticks.delete(o.id);
+      row.classList.toggle('ticked', tick.checked);
+      tally();
+    });
+    const label = el('button', 'optname act', o.label);
+    row.append(tick, label);
+    if (o.share != null) row.append(el('small', null, share(o.share)));
+    if (peekable) {
+      const see = el('button', 'see act', 'see the data');
+      see.addEventListener('click', () => peek(o, wrap, row, b));
+      row.append(see);
+      label.addEventListener('click', () => peek(o, wrap, row, b));
+      if (again && b._open === o.id) peek(o, wrap, row, b);
+    } else {
+      label.addEventListener('click', () => tick.click());
+    }
+    wrap.append(row);
+    opts.append(wrap);
+  });
+  go.addEventListener('click', () => {
+    const picked = ev.options.filter((o) => ticks.has(o.id));
+    if (picked.length) act({ action: 'pick', ids: picked.map((o) => o.id) }, picked.map((o) => o.label).join(' or '));
+  });
+  tally();
+  b.append(opts);
+  if (ev.more) b.append(el('p', 'note', `${ev.more} more behind "None of these".`));
+  const r = el('div', 'row'); r.append(go);
+  const extra = (label, payload) => { const x = el('button', 'btn line act', label); x.addEventListener('click', () => act(payload, label)); r.append(x); };
+  if (ev.fork !== 'missing') extra('Any of these', { action: 'any' });
+  if (ev.fork !== 'leave' && ev.fork !== 'missing') extra('None of these', { action: 'none' });
+  extra("Stop asking, show what's left", { action: 'stop' });
+  b.append(r, el('p', 'note', (peekable ? 'Click an option to see the data behind it. Tick the ones you mean, then proceed. ' : 'Tick one, then proceed. ') + 'Or answer in your own words in the box below.'));
+}
+// one option's look: where it places the part, what that place holds, its tables and joins,
+// and the first rows it reads; a second click closes it, and one look is open at a time
+async function peek(o, wrap, row, box) {
+  const open = wrap.querySelector('.peek');
+  for (const p of box.querySelectorAll('.peek')) p.remove();
+  for (const r of box.querySelectorAll('.opt.open')) r.classList.remove('open');
+  box._open = null;
+  if (open) return;
+  box._open = o.id;
+  row.classList.add('open');
+  const p = el('div', 'peek');
+  const dots = el('span', 'dots'); dots.append(el('i'), el('i'), el('i'));
+  p.append(dots);
+  wrap.append(p);
+  let d;
+  try { d = await api('/peek?option=' + enc(o.id)); }
+  catch (e) { p.replaceChildren(el('p', 'note', 'Cannot show the data: ' + e.message)); return; }
+  if (!p.isConnected) return;
+  p.replaceChildren();
+  const what = el('div', 'what');
+  const code = (t) => el('code', null, t);
+  if (d.kind === 'table' || d.kind === 'column') {
+    what.append(`"${d.part}" is read from `, code(d.place));
+    if (d.value != null) what.append(' with the stored value ', code(d.value));
+  } else if (d.kind === 'database') {
+    what.append('Every part is read from the database ', code(d.database));
+  } else if (d.kind === 'leave') {
+    what.append(`Leaves out "${d.left_out.join('", "')}"; the rest of the question is answered without it`);
+  } else {
+    what.append('The tables are linked this way');
+  }
+  p.append(what);
+  if (d.description) p.append(el('p', 'note', d.description));
+  if (d.reason && (d.kind === 'table' || d.kind === 'column')) p.append(el('p', 'note verbose-only', 'Why it was found: ' + d.reason));
+  const chips = el('div', 'chips');
+  for (const t of d.tables) chips.append(el('span', 'chip', t));
+  for (const j of d.joins) chips.append(el('span', 'chip link', 'linked on ' + j));
+  p.append(chips);
+  if (d.columns.length) {
+    const t = el('table', 'rows'); const head = el('tr');
+    d.columns.forEach((c, i) => head.append(el('th', i === d.highlight ? 'hl' : null, c)));
+    t.append(head);
+    for (const r of d.rows) { const tr = el('tr'); r.forEach((v, i) => { const td = el('td', i === d.highlight ? 'hl' : null, v == null ? 'NULL' : v); td.title = v == null ? 'NULL' : v; tr.append(td); }); t.append(tr); }
+    const w = el('div'); w.style.overflowX = 'auto'; w.append(t);
+    p.append(w);
+  }
+  const n = d.count == null ? 'too many rows to count quickly' : `${d.count} row${d.count === 1 ? '' : 's'}`;
+  const foot = el('p', 'note', d.slow
+    ? 'These tables are too large to read quickly here. Open the whole table to look at its rows.'
+    : d.rows.length
+    ? `The first ${d.rows.length} of ${n} this option reads, with the likeliest places for the other parts. Only stored values filter the rows here; other conditions are applied when the SQL is written.`
+    : 'This option reads no rows with the stored values of the question.');
+  p.append(foot);
+  if (d.table != null) {
+    const whole = el('button', 'link', 'open the whole table');
+    whole.addEventListener('click', () => openSide({ table: d.table, column: d.column, kind: d.column == null ? 'table' : 'column',
+      table_name: d.table_name, name: d.column_name, database: d.database, rows: d.table_rows, distinct: d.distinct, why: d.reason, lake }, null, row));
+    p.append(whole);
+  }
+  if (nearBottom()) p.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+function closeFork() {
+  if (forkBox) for (const x of forkBox.querySelectorAll('button, input')) x.disabled = true;
+  fork = null; forkBox = null;
+}
+async function act(payload, said) {
+  if (!fork) return;
+  const was = fork, box = forkBox;
+  closeFork(); answered = was; mapAnswer(was, payload);
+  const m = me(said); m.dataset.step = was.step;
+  changeLink(m, 'change this answer', decided(was.step), was.step);
+  working(payload.action === 'text' ? 'Reading your words' : 'Following your answer');
+  try { await api('/guide', payload); }
+  catch (e) { delete M.steps[was.step]; mapRebuild(); mapDraw(); m.remove(); working(null); answered = null; fork = was; forkBox = box; for (const x of box.querySelectorAll('button, input')) x.disabled = false; say(e.message, 'bad'); }
+}
+async function goBack(step, btn) {
+  btn.disabled = true;
+  const was = fork, box = forkBox, pick = pickBox;
+  closeFork(); closePick(null); answered = null;
+  const m = say(`Going back to question ${step + 1}.`, 'note');
+  working('Going back');
+  try {
+    await api('/guide', { action: 'back', to: step });
+  }
+  catch (e) { m.remove(); working(null); btn.disabled = false; fork = was; forkBox = box; if (box) for (const x of box.querySelectorAll('button, input')) x.disabled = false; if (pick) { pickBox = pick; openPick(); } say('Cannot go back now: ' + e.message, 'note'); }
+}
+function typed(text) {
+  if (fork) { $('reply').value = ''; grow($('reply')); act({ action: 'text', text }, text); return; }
+  say('Nothing is waiting for words now. Press the square to stop the run first.', 'note');
+}
+
+// ---- interpretations ----
+const name = (id) => {
+  const one = interps.get(id), n = String(id).replace(/\D/g, '');
+  return `Interpretation ${n || id}` + (one && one.title ? ': ' + one.title : '');
+};
+function showInterps(ev) {
+  const list = ev.interpretations;
+  interps = new Map(list.map((one) => [one.id, one]));
+  const b = bot('Interpretations');
+  if (ev.stopped) { b.append(el('p', 'bad', ev.stopped)); return; }
+  b.append(el('p', null, list.length === 1 ? 'One interpretation is left.' : `${list.length} interpretations are left. Tick the ones you mean.`));
+  for (const line of ev.dropped || []) b.append(el('p', 'note verbose-only', 'Dropped: ' + line));
+  if (ev.note) b.append(el('p', 'note', ev.note));
+  const boxes = [];
+  for (const one of list) {
+    const card = el('div', 'card');
+    const label = el('label');
+    const tick = el('input'); tick.type = 'checkbox'; tick.checked = true; tick.disabled = true; tick.className = 'act'; tick.value = one.id;
+    boxes.push(tick);
+    const body = el('div');
+    body.append(el('div', 'title', name(one.id)));
+    if (one.summary) body.append(el('div', null, one.summary));
+    for (const bd of one.bindings) {
+      const p = parts[Number(String(bd.entity).replace(/\D/g, '')) - 1];
+      body.append(el('div', 'bind mono', `${p ? p.attribute : bd.entity} → ${bd.column}${bd.value != null ? ` = "${bd.value}"` : ''}${(bd.also || []).map(([c, v]) => `, ${c}${v != null ? ` = "${v}"` : ''}`).join('')}`));
+    }
+    body.append(el('div', 'bind verbose-only', 'Tables: ' + one.tables.join(', ') + (one.note ? ' · ' + one.note : '')));
+    if (one.left_out && one.left_out.length) body.append(el('div', 'bind', 'Leaves out: ' + one.left_out.join(', ')));
+    label.append(tick, body); card.append(label); b.append(card);
+  }
+  const r = el('div', 'row');
+  const run = el('button', 'btn act', 'Run the queries'); run.disabled = true;
+  run.addEventListener('click', async () => {
+    const ids = boxes.filter((x) => x.checked).map((x) => x.value);
+    if (!ids.length) return;
+    run.disabled = true;
+    try { await api('/query', { ids }); } catch (e) { run.disabled = false; say(e.message, 'bad'); }
+  });
+  r.append(run); b.append(r);
+  for (const x of boxes) x.addEventListener('change', () => { run.disabled = !boxes.some((y) => y.checked); });
+  pickBox = { b, boxes, run };
+}
+function openPick() {
+  if (!pickBox) return;
+  for (const x of pickBox.boxes) x.disabled = false;
+  pickBox.run.disabled = false;
+  pickBox.run.focus({ preventScroll: true });
+}
+function closePick(ids) {
+  if (!pickBox) return;
+  for (const x of pickBox.boxes) { x.disabled = true; if (ids) x.checked = ids.includes(x.value); }
+  pickBox.run.disabled = true;
+  if (ids && ids.length) {
+    const m = me(ids.length === 1 ? 'Run ' + name(ids[0]).replace(/^I/, 'i') : `Run these ${ids.length} interpretations`);
+    if (R) changeLink(m, 'change which ones run', decided(null));
+  }
+  pickBox = null;
+}
+
+// ---- answers ----
+function showRows(ev) {
+  const b = bot('Answer · ' + name(ev.id));
+  if (ev.error != null) { b.append(el('p', 'bad', 'The query failed: ' + ev.error)); return; }
+  answers.push(ev.id);
+  if (ev.said) b.append(el('p', null, ev.said));
+  if (ev.sentence) b.append(el('p', 'note', 'What it counts: ' + ev.sentence));
+  const t = el('table', 'rows'); const head = el('tr');
+  for (const c of ev.columns) head.append(el('th', null, c));
+  t.append(head);
+  for (const r of ev.rows.slice(0, 50)) { const tr = el('tr'); for (const v of r) tr.append(el('td', null, v == null ? 'NULL' : String(v))); t.append(tr); }
+  const wrap = el('div'); wrap.style.overflowX = 'auto'; wrap.append(t);
+  b.append(wrap);
+  if (ev.more || ev.rows.length > 50) b.append(el('p', 'note', 'More rows exist than shown.'));
+  const d = el('details'); d.append(el('summary', null, 'SQL'), el('pre', 'mono', ev.sql || ''));
+  b.append(d);
+}
+
+// ---- follow-ups ----
+// After an answer, typed words go to one LLM call (the router). It says whether only the
+// SQL has to change, over the columns the last query read, or the search starts again,
+// and writes the question to ask. The chat says which and why, then goes on at once.
+async function followUp(text) {
+  for (const old of chat.querySelectorAll('.followpick button')) old.disabled = true;
+  me(text);
+  if (answers.length > 1 && !chosenId) {
+    const b = say('Which answer should this follow up on?');
+    const r = el('div', 'row followpick');
+    for (const id of answers) {
+      const x = el('button', 'btn line act', name(id));
+      x.addEventListener('click', async () => {
+        for (const y of r.children) y.disabled = true;
+        try { await api('/choose', { id }); chosenId = id; } catch (e) { say(e.message, 'bad'); for (const y of r.children) y.disabled = false; return; }
+        route(text);
+      });
+      r.append(x);
+    }
+    b.append(r);
+    return;
+  }
+  route(text);
+}
+async function route(text) {
+  const was = chosenId || answers[0], one = interps.get(was);
+  working('Deciding: rewrite the last SQL, or search the lake again');
+  routing = true; $('newchat').disabled = true;
+  let d;
+  try { d = await api('/route', { text }); }
+  catch (e) {
+    routing = false; $('newchat').disabled = false;
+    working(null);
+    say(`The follow-up could not be routed (${e.message}). Type it as a new question, or press New chat.`, 'bad');
+    return;
+  }
+  working(null);
+  showRoute(d, one);
+  following = d.route;
+  try { runNumber = (await api('/follow', { question: d.question, route: d.route, check: true, guided: true, said: text })).run; }
+  catch (e) { following = null; say('The follow-up did not start: ' + e.message, 'bad'); return; }
+  finally { routing = false; $('newchat').disabled = false; }
+  listen();
+}
+function showRoute(d, one) {
+  const b = bot('Follow-up');
+  const box = el('div', 'route');
+  if (d.route === 'rewrite') {
+    box.append(el('p', null, 'I will only rewrite the SQL, on the same tables, with no new search.'));
+    box.append(el('p', 'note', 'Why: ' + d.why + '.'));
+    if (one) {
+      const chips = el('div', 'chips');
+      for (const t of one.tables) chips.append(el('span', 'chip', t));
+      box.append(el('p', 'note', 'Reusing ' + name(one.id).replace(/^I/, 'i') + ', which reads:'), chips);
+    }
+  } else {
+    box.append(el('p', null, 'I will search the lake again, from the parts of the question.'));
+    box.append(el('p', 'note', 'Why: ' + d.why + '. The new thing may sit in more than one place, so you may be asked again.'));
+  }
+  const asked = el('p', null, 'Asked as: '); asked.append(el('b', null, d.question));
+  box.append(asked);
+  b.append(box);
+}
+
+// verbose only: every LLM call of the run, its prompt and its answer
+async function showCalls() {
+  let list = [];
+  try { list = await api('/calls'); } catch (e) { return; }
+  if (!list.length) return;
+  const b = bot(); b.className = 'bot verbose-only';
+  b.append(el('div', 'step', `LLM calls of this run (${list.length})`));
+  for (const c of list) {
+    const d = el('details');
+    d.append(el('summary', null, `${c.label || 'call'}${c.seconds != null ? ` · ${c.seconds.toFixed(1)} s` : ''}`));
+    const prompt = typeof c.prompt === 'string' ? c.prompt
+      : (c.prompt || []).map((m) => `[${m.role}]\n${typeof m.content === 'string' ? m.content : JSON.stringify(m.content, null, 1)}`).join('\n\n');
+    const out = c.parsed;
+    d.append(el('pre', 'mono', prompt), el('pre', 'mono', out != null ? JSON.stringify(out, null, 1) : (c.output_text || c.error || '')));
+    b.append(d);
+  }
+}
+
+// ---- chat history: each chat saved on the server, with its folder ----
+let chatList = [], folderList = [], liveChat = null;
+let viewChat = null;   // the chat on screen; a new question goes on in it
+let oldView = false;   // a saved chat whose runs are over: no follow-up, a new question searches again
+let replaying = false; // drawing a saved chat's events: nothing is sent, nothing starts
+let navGroup = store.get('amigo.group') || 'time';
+const DAY = 86400e3;
+async function loadChats() {
+  try {
+    const d = await api('/chats');
+    chatList = d.chats; folderList = d.folders;
+    liveChat = d.current && d.current.live ? d.current.chat : null;
+    drawNav();
+    return d.current;
+  } catch (e) { return null; }
+}
+function whenGroup(t) {
+  const today = new Date().setHours(0, 0, 0, 0), ms = t * 1000;
+  if (ms >= today) return 'Today';
+  if (ms >= today - DAY) return 'Yesterday';
+  if (ms >= today - 7 * DAY) return 'Previous 7 days';
+  if (ms >= today - 30 * DAY) return 'Previous 30 days';
+  return 'Older';
+}
+function clockTime(t) {
+  const d = new Date(t * 1000);
+  return d.toDateString() === new Date().toDateString()
+    ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+function drawNav() {
+  const lakes = [...new Set(chatList.map((c) => c.lake))].sort(), sel = $('navlake'), was = sel.value;
+  sel.replaceChildren(new Option('All lakes', ''), ...lakes.map((l) => new Option(l, l)));
+  sel.value = lakes.includes(was) ? was : '';
+  for (const b of $('navgroup').children) b.classList.toggle('on', b.dataset.g === navGroup);
+  const words = $('navq').value.toLowerCase().split(/\s+/).filter(Boolean);
+  const since = { day: 1, week: 7, month: 30 }[$('navtime').value];
+  const today = new Date().setHours(0, 0, 0, 0);
+  const shown = chatList.filter((c) => (!sel.value || c.lake === sel.value)
+    && (!since || c.updated * 1000 >= today - (since - 1) * DAY)
+    && words.every((w) => (c.title || '').toLowerCase().includes(w)));
+  const groups = new Map();
+  if (navGroup === 'folder') { for (const f of folderList) groups.set(f, []); groups.set('', []); }
+  for (const c of shown) {
+    const key = navGroup === 'time' ? whenGroup(c.updated) : navGroup === 'lake' ? c.lake : (c.folder || '');
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(c);
+  }
+  const list = $('navlist'); list.replaceChildren();
+  for (const [key, items] of groups) {
+    if (!items.length && navGroup !== 'folder') continue;
+    const sec = el('section', 'navsec'), head = el('div', 'navhead');
+    head.append(el('span', null, navGroup === 'folder' && !key ? 'No folder' : key));
+    if (navGroup === 'folder') {
+      head.append(el('small', null, String(items.length)));
+      if (key) {
+        const ren = el('button', 'navicon', '✎'); ren.title = 'Rename the folder';
+        ren.addEventListener('click', () => {
+          const to = (prompt('New name of the folder', key) || '').trim();
+          if (to && to !== key) navPost('/folders', { action: 'rename', name: key, to });
+        });
+        const del = el('button', 'navicon', '×'); del.title = 'Delete the folder (its chats stay)';
+        del.addEventListener('click', () => {
+          if (confirm(`Delete the folder "${key}"? Its chats stay, in no folder.`)) navPost('/folders', { action: 'delete', name: key });
+        });
+        head.append(ren, del);
+      }
+      // a chat dragged onto a folder moves into it
+      sec.addEventListener('dragover', (e) => { e.preventDefault(); sec.classList.add('drop'); });
+      sec.addEventListener('dragleave', () => sec.classList.remove('drop'));
+      sec.addEventListener('drop', (e) => { e.preventDefault(); sec.classList.remove('drop'); moveChat(e.dataTransfer.getData('text/plain'), key || null); });
+    }
+    sec.append(head);
+    for (const c of items) sec.append(chatItem(c));
+    if (navGroup === 'folder' && !items.length) sec.append(el('div', 'navempty', 'Drag chats here'));
+    list.append(sec);
+  }
+  if (!shown.length) list.append(el('div', 'navempty', chatList.length ? 'No chat matches.' : 'Your chats will show here.'));
+  $('delall').disabled = !chatList.length;
+}
+function chatItem(c) {
+  const item = el('div', 'navitem' + (c.id === viewChat ? ' on' : '') + (c.id === liveChat ? ' live' : ''));
+  item.draggable = true;
+  item.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', c.id));
+  const open = el('button', 'navopen');
+  open.append(el('span', 'navtitle', c.title || 'Untitled'), el('small', null, `${c.lake} · ${clockTime(c.updated)}${c.folder ? ' · ' + c.folder : ''}`));
+  open.title = c.title || '';
+  open.addEventListener('click', () => openChat(c.id));
+  const more = el('button', 'navmore', '⋯'); more.setAttribute('aria-label', 'Move or delete this chat');
+  more.addEventListener('click', (e) => { e.stopPropagation(); chatMenu(c, more); });
+  item.append(open, more);
+  return item;
+}
+let menu = null;
+function closeMenu() { if (menu) menu.remove(); menu = null; }
+document.addEventListener('click', closeMenu);
+function chatMenu(c, anchor) {
+  closeMenu();
+  menu = el('div', 'menu');
+  menu.addEventListener('click', (e) => e.stopPropagation());
+  menu.append(el('div', 'menuhead', 'Move to folder'));
+  for (const f of [null, ...folderList]) {
+    const b = el('button', c.folder === f ? 'on' : null, f || 'No folder');
+    b.addEventListener('click', () => { closeMenu(); moveChat(c.id, f); });
+    menu.append(b);
+  }
+  const add = el('button', null, '+ New folder…');
+  add.addEventListener('click', async () => { closeMenu(); const name = await newFolder(); if (name) moveChat(c.id, name); });
+  const del = el('button', 'bad', 'Delete chat');
+  del.addEventListener('click', () => { closeMenu(); deleteChat(c); });
+  menu.append(add, el('hr'), del);
+  document.body.append(menu);
+  const r = anchor.getBoundingClientRect();
+  menu.style.top = Math.max(8, Math.min(r.bottom + 4, innerHeight - menu.offsetHeight - 8)) + 'px';
+  menu.style.left = Math.max(8, Math.min(r.left, innerWidth - menu.offsetWidth - 8)) + 'px';
+}
+async function navPost(url, body) {
+  try { const d = await api(url, body); chatList = d.chats; folderList = d.folders; drawNav(); return true; }
+  catch (e) { alert(e.message); return false; }
+}
+function moveChat(id, folder) { if (id) navPost('/chats/move', { id, folder }); }
+async function newFolder() {
+  const name = (prompt('Name of the new folder') || '').trim();
+  return name && await navPost('/folders', { action: 'add', name }) ? name : null;
+}
+function leaveChat() { viewChat = null; oldView = false; if (!live) showStart(); drawNav(); }
+async function deleteChat(c) {
+  if (!confirm(`Delete the chat "${c.title}"? This cannot be undone.`)) return;
+  if (await navPost('/chats/delete', { id: c.id }) && c.id === viewChat) leaveChat();
+}
+$('delall').addEventListener('click', async () => {
+  if (!confirm(`Delete all ${chatList.length} chats? This cannot be undone. The folders stay.`)) return;
+  if (await navPost('/chats/delete', { all: true }) && viewChat) leaveChat();
+});
+$('newfolder').addEventListener('click', () => { if (navGroup !== 'folder') { navGroup = 'folder'; store.set('amigo.group', navGroup); } newFolder().then(drawNav); });
+$('navnew').addEventListener('click', () => showStart());
+$('navq').addEventListener('input', drawNav);
+$('navlake').addEventListener('change', drawNav);
+$('navtime').addEventListener('change', drawNav);
+$('navgroup').addEventListener('click', (e) => { const g = e.target.dataset.g; if (g) { navGroup = g; store.set('amigo.group', g); drawNav(); } });
+function setNav(open) { document.body.classList.toggle('nav-open', open); store.set('amigo.nav', open ? 'open' : 'closed'); requestAnimationFrame(mapSoon); }
+$('navbtn').addEventListener('click', () => setNav(!document.body.classList.contains('nav-open')));
+
+// a saved chat: its finished runs are drawn from their events, the server's current run
+// (when it is this chat's) follows live, so its pauses and follow-ups still work
+async function openChat(id) {
+  if (routing) return;
+  if (live && id !== viewChat) { say('A search is running in this chat. Stop it, or wait for it, before opening another chat.', 'note'); return; }
+  let data;
+  try { data = await api('/chats/' + enc(id)); } catch (e) { alert(e.message); loadChats(); return; }
+  if (source) { source.close(); source = null; }
+  clearInterval(clock); clearInterval(usageTimer); clock = null;
+  firstLoad = false; following = null; restartWith = null;
+  chat.replaceChildren(); liveLine = null; resetRun(); closeSide(); showChat(); mapReset('');
+  viewChat = id;
+  if (data.lake && data.lake !== lake && [...$('lakesel').options].some((o) => o.value === data.lake)) {
+    lake = data.lake; $('lakesel').value = lake; loadQuestions();
+  }
+  replaying = true;
+  try {
+    for (const one of data.runs) {
+      if (one.uid === data.live_run) continue;
+      for (const ev of one.events) { try { handle(ev); } catch (err) { console.error('replay', ev.type, err); } }
+      if (live) finish(null);  // saved mid-way: nothing on the server waits for it any more
+    }
+  } finally { replaying = false; }
+  oldView = !data.live_run;
+  for (const b of chat.querySelectorAll('button.act, input.act')) b.disabled = true;
+  answers = []; chosenId = null; setLive(false); working(null);
+  $('stat').hidden = oldView;
+  drawNav();
+  if (data.live_run) listen();
+  else window.scrollTo(0, document.body.scrollHeight);
+}
+
+// ---- live map: the parts, the places weighed for each, and what the search settles on ----
+const MAP_TOP = 5;  // per part, the likeliest places drawn; the ones the judge keeps always are
+const M = {};
+const RANK = { dropped: 0, seen: 1, kept: 2 };
+const tableOf = (path) => path.split('.').slice(0, 2).join('.');
+function mapReset(question) {
+  Object.assign(M, { parts: [], tables: new Map(), order: [], links: new Map(), joins: new Set(), interps: new Map(),
+                     ask: null, picked: new Set(), passed: new Set(), steps: [], more: 0, final: false, weighed: new Set() });
+  $('mapq').textContent = question || '';
+  mapNow(null);
+  lakeReset();
+  mapDraw();
+}
+function mapNow(text) {
+  const box = $('mapnow'); box.replaceChildren();
+  if (!text) return;
+  if (live) { const dots = el('span', 'dots'); dots.append(el('i'), el('i'), el('i')); box.append(dots); }
+  box.append(el('span', null, text));
+}
+function mapParts(entities) { M.parts = entities.map((e) => ({ attr: e.attribute, value: literalText(e.literal) })); mapDraw(); }
+function mapTable(key, info) {
+  if (!M.tables.has(key)) {
+    const [db, name] = key.split('.');
+    M.tables.set(key, { db, name, rows: null, cols: new Map(), score: 0, ...info });
+    M.order.push(key);
+  }
+  return M.tables.get(key);
+}
+function mapPlaces(list) {
+  // each places event says everything again: the judge's yes or no, or the person's edits
+  for (const t of M.tables.values()) { t.cols = new Map(); t.state = null; }
+  M.links = new Map(); M.more = 0; M.weighed = new Set();
+  list.forEach((p, j) => {
+    [...p.items].sort((a, b) => b.score - a.score).forEach((it, k) => {
+      M.weighed.add(`${it.database}.${it.table_name}`);
+      if (k >= MAP_TOP && it.yes !== true) { M.more++; return; }
+      const state = it.yes === true ? 'kept' : it.yes === false ? 'dropped' : 'seen';
+      const t = mapTable(`${it.database}.${it.table_name}`, {});
+      t.rows = it.rows; t.score = Math.max(t.score, it.score);
+      t.state = t.state && RANK[t.state] >= RANK[state] ? t.state : state;
+      { const was = t.cols.get(it.name); t.cols.set(it.name, was && RANK[was] >= RANK[state] ? was : state); }
+      const key = j + '|' + `${it.database}.${it.table_name}`, was = M.links.get(key);
+      if (!was || RANK[was.state] < RANK[state]) M.links.set(key, { part: j, table: `${it.database}.${it.table_name}`, state });
+    });
+  });
+  mapDraw();
+}
+function mapFork(ev) {
+  const tables = new Set();
+  for (const o of ev.options || []) for (const t of o.tables || []) { tables.add(t); mapTable(t, { state: 'seen' }); }
+  M.steps.length = Math.min(M.steps.length, ev.step); mapRebuild();
+  M.final = false; M.interps = new Map(); M.joins = new Set();
+  M.ask = { part: ev.part, kind: ev.fork, tables };
+  mapNow('Asking you: ' + ev.question);
+  mapDraw();
+}
+// the person's answer at a fork: the tables of the options taken light up, the rest fade
+function mapAnswer(was, payload) {
+  const ids = payload.action === 'any' ? (was.options || []).map((o) => o.id)
+    : payload.action === 'pick' ? payload.ids || [] : payload.action === 'none' ? [] : null;
+  if (ids == null) return;
+  const taken = new Set((was.options || []).filter((o) => ids.includes(o.id)).flatMap((o) => o.tables || []));
+  M.steps[was.step] = { taken, all: (was.options || []).flatMap((o) => o.tables || []) };
+  mapRebuild(); M.ask = null; mapDraw();
+}
+function mapRebuild() {
+  M.picked = new Set(); M.passed = new Set();
+  for (const s of M.steps) if (s) for (const t of s.all) {
+    if (s.taken.has(t)) { M.picked.add(t); M.passed.delete(t); } else if (!M.picked.has(t)) M.passed.add(t);
+  }
+}
+function mapInterps(list) {
+  M.interps = new Map(list.map((one) => [one.id, { id: one.id, tables: one.tables, state: 'live', answer: null }]));
+  M.joins = new Set();
+  for (const one of list) {
+    for (const t of one.tables) mapTable(t, { state: 'seen' });
+    for (const [a, b] of one.joins || []) { const x = tableOf(a), y = tableOf(b); if (x !== y) M.joins.add([x, y].sort().join('|')); }
+    // a rewrite has no places step: the bindings say which part sits in which table (E1 is part 0)
+    for (const b of one.bindings || []) {
+      const part = Number(String(b.entity).slice(1)) - 1, table = b.column && tableOf(b.column), key = part + '|' + table;
+      if (table && part >= 0 && !M.links.has(key)) M.links.set(key, { part, table, state: 'kept' });
+    }
+  }
+  M.ask = null; M.final = list.length > 0;
+  mapNow(list.length ? `${list.length} interpretation${list.length === 1 ? '' : 's'} left` : 'No interpretation left');
+  mapDraw();
+}
+function mapInterp(id, state, answer) {
+  const one = M.interps.get(id);
+  if (!one) return;
+  one.state = state;
+  if (answer !== undefined) one.answer = answer;
+  mapDraw();
+}
+function mapSelected(ids) { for (const one of M.interps.values()) one.state = ids.includes(one.id) ? 'chosen' : 'off'; mapDraw(); }
+function tableState(key) {
+  const used = [...M.interps.values()].some((one) => one.state !== 'off' && one.tables.includes(key));
+  if (M.ask && M.ask.tables.has(key)) return 'asking';
+  if (M.final) return used ? 'used' : 'passed';
+  if (M.picked.has(key)) return 'picked';
+  if (M.passed.has(key)) return 'passed';
+  return M.tables.get(key).state || 'seen';
+}
+function linkState(k) {
+  const t = tableState(k.table);
+  if (t === 'asking' && M.ask.part === k.part) return 'asking';
+  if ((t === 'used' || t === 'picked') && k.state !== 'dropped') return 'picked';
+  if (t === 'passed') return 'dropped';
+  return k.state;
+}
+// keyed nodes: one made once fades in, one that stays only changes its look
+function syncLane(lane, items) {
+  const have = new Map([...lane.children].map((n) => [n.dataset.key, n]));
+  let prev = null, fresh = 0;
+  for (const [key, cls, fill] of items) {
+    let n = have.get(key);
+    const made = !n;
+    if (made) { n = el('div'); n.dataset.key = key; }
+    have.delete(key);
+    n.className = `mnode ${cls}${made ? '' : ' in'}`;
+    fill(n);
+    const at = prev ? prev.nextSibling : lane.firstChild;
+    if (at !== n) lane.insertBefore(n, at);
+    if (made) setTimeout(() => n.classList.add('in'), 40 + fresh++ * 90);
+    prev = n;
+  }
+  for (const n of have.values()) if (n.dataset.key) n.remove();
+}
+function mapDraw() {
+  syncLane($('lparts'), M.parts.map((p, j) => ['p' + j, M.ask && M.ask.part === j ? 'asking' : '', (n) => {
+    n.replaceChildren(el('b', null, p.attr));
+    if (p.value) n.append(el('small', null, '= ' + p.value));
+  }]));
+  const keys = M.order.filter((k) => M.tables.get(k).state || M.picked.has(k) || (M.ask && M.ask.tables.has(k))
+    || [...M.interps.values()].some((one) => one.tables.includes(k)));
+  syncLane($('ltables'), keys.map((k) => ['t' + k, tableState(k), (n) => {
+    const t = M.tables.get(k);
+    n.replaceChildren(el('b', null, t.name), el('small', null, t.db + (t.rows != null ? ` · ${t.rows.toLocaleString()} rows` : '')));
+    n.title = k;
+    if (t.cols.size) {
+      const cols = el('div', 'cols');
+      for (const [name, state] of t.cols) cols.append(el('span', 'c ' + state, name));
+      n.append(cols);
+    }
+    if (t.score) { const bar = el('div', 'mbar'), fill = el('i'); fill.style.width = Math.round(Math.max(0, Math.min(1, t.score)) * 100) + '%'; bar.append(fill); n.append(bar); }
+  }]));
+  const lt = $('ltables');
+  let more = lt.querySelector('.mmore');
+  if (M.more) { if (!more) more = el('div', 'mmore'); more.textContent = `+ ${M.more} other place${M.more === 1 ? '' : 's'} weighed`; lt.append(more); }
+  else if (more) more.remove();
+  syncLane($('linterps'), [...M.interps.values()].map((one) => ['i' + one.id, one.state, (n) => {
+    n.replaceChildren(el('b', null, name(one.id)));
+    const it = interps.get(one.id);
+    if (it && it.summary) n.append(el('small', null, it.summary));
+    if (one.answer) n.append(el('div', 'ans', one.answer));
+  }]));
+  $('mapempty').hidden = M.parts.length > 0;
+  mapSoon(); lakeDraw();
+}
+// the edges follow the nodes while they slide in, then stay
+let edgeUntil = 0, edgeLoop = false;
+function mapSoon() {
+  edgeUntil = performance.now() + 800;
+  if (edgeLoop) return;
+  edgeLoop = true;
+  const step = () => { mapEdges(); if (performance.now() < edgeUntil) requestAnimationFrame(step); else edgeLoop = false; };
+  requestAnimationFrame(step);
+}
+const SVG = 'http://www.w3.org/2000/svg';
+const curve = (x1, y1, x2, y2) => { const m = (x1 + x2) / 2; return `M${x1},${y1} C${m},${y1} ${m},${y2} ${x2},${y2}`; };
+function mapEdges() {
+  const body = $('mapbody'), svg = $('mapedges');
+  if (!document.body.classList.contains('map-open')) return;
+  const box = body.getBoundingClientRect();
+  svg.setAttribute('width', box.width); svg.setAttribute('height', body.offsetHeight);
+  const at = (lane, key) => {
+    const n = [...$(lane).children].find((x) => x.dataset.key === key);
+    if (!n) return null;
+    const r = n.getBoundingClientRect();
+    return { l: r.left - box.left, r: r.right - box.left, y: r.top - box.top + r.height / 2 };
+  };
+  const want = [];
+  for (const [key, k] of M.links) {
+    const a = at('lparts', 'p' + k.part), b = at('ltables', 't' + k.table);
+    if (a && b) want.push(['l' + key, curve(a.r, a.y, b.l, b.y), 'e ' + linkState(k)]);
+  }
+  for (const j of M.joins) {
+    const [x, y] = j.split('|'), a = at('ltables', 't' + x), b = at('ltables', 't' + y);
+    if (!a || !b) continue;
+    const bend = 16 + Math.min(30, Math.abs(b.y - a.y) / 8);
+    want.push(['j' + j, `M${a.r},${a.y} C${a.r + bend},${a.y} ${b.r + bend},${b.y} ${b.r},${b.y}`, 'e join']);
+  }
+  for (const one of M.interps.values()) for (const t of one.tables) {
+    const a = at('ltables', 't' + t), b = at('linterps', 'i' + one.id);
+    if (a && b) want.push(['u' + one.id + t, curve(a.r + 4, a.y, b.l, b.y), 'e use ' + one.state]);
+  }
+  const have = new Map([...svg.children].map((p) => [p.dataset.key, p]));
+  for (const [key, d, cls] of want) {
+    let p = have.get(key);
+    if (!p) {
+      p = document.createElementNS(SVG, 'path'); p.dataset.key = key; svg.append(p);
+      p.setAttribute('class', cls + ' fresh');
+      p.addEventListener('animationend', () => { p.classList.remove('fresh'); mapEdges(); }, { once: true });
+    } else if (!p.classList.contains('fresh')) p.setAttribute('class', cls);
+    p.setAttribute('d', d);
+    have.delete(key);
+  }
+  for (const p of have.values()) p.remove();
+}
+new ResizeObserver(mapSoon).observe($('mapbody'));
+
+// ---- the lake: a dot per table (or column), the ones that mean alike close together.
+// A dot takes the colour its table has in the diagram; the ring is where the search is looking.
+const L = { lake: null, tables: [], byId: new Map(), links: [], dots: new Map(), cols: null, cdots: new Map(),
+  dim: store.get('amigo.lakedim') === '3' ? 3 : 2, kind: store.get('amigo.lakekind') === 'column' ? 'column' : 'table',
+  cam: { c: [0, 0, 0], span: 2.2, yaw: .5, pitch: -.35 }, want: null, follow: true, ring: null, trail: [],
+  hover: null, sel: null, loop: false, drag: null };
+const LOOK = {  // state in the diagram -> radius, opacity, colour, pulsing ring
+  idle: [2, .5, 'faint', 0], weighed: [2.4, .8, 'dim', 0], seen: [3, .9, 'dim', 0], kept: [3.8, 1, 'ok', 0],
+  dropped: [2, .35, 'faint', 0], asking: [4, 1, 'acc', 1], picked: [4.2, 1, 'acc', 0], used: [4.4, 1, 'acc', 0],
+  passed: [2, .45, 'faint', 0], inside: [2.6, .9, 'acc', 0],
+};
+const dotOf = (t, key, extra) => ({ t, key, r: 2, a: .5, ring: 0, state: 'idle', ...extra });
+async function lakeLoad(name) {
+  if (!name || L.lake === name) return;
+  Object.assign(L, { lake: name, tables: [], dots: new Map(), cols: null, cdots: new Map(), sel: null, hover: null });
+  $('lakeinfo').hidden = true;
+  lakeNote('laying out the lake…');
+  try {
+    const data = await api('/map?lake=' + enc(name));
+    if (L.lake !== name) return;
+    L.tables = data.tables; L.byId = new Map(data.tables.map((t) => [t.id, t]));
+    L.links = data.links.map(([a, b]) => [L.byId.get(a), L.byId.get(b)]).filter(([a, b]) => a && b);
+    for (const t of L.tables) L.dots.set(t.path, dotOf(t, t.path, { table: t }));
+  } catch (e) { lakeNote('no map for this lake'); return; }
+  if (L.kind === 'column') await lakeColumns();
+  lakeNote(); lakeDraw();
+}
+async function lakeColumns() {
+  if (L.cols || !L.lake) return;
+  const name = L.lake;
+  lakeNote('laying out the columns…');
+  try {
+    const cols = await api('/map?columns=1&lake=' + enc(name));
+    if (L.lake !== name) return;
+    L.cols = cols;
+    for (const c of cols) {
+      const table = L.byId.get(c.table);
+      if (table) L.cdots.set(table.path + '.' + c.name, dotOf(c, table.path + '.' + c.name, { table, column: c.name }));
+    }
+  } catch (e) { L.kind = 'table'; }
+  lakeNote();
+}
+function lakeNote(text) {
+  $('lakenote').textContent = text || (L.tables.length ? (L.kind === 'column' && L.cols
+    ? `${L.cols.length.toLocaleString()} columns` : `${L.tables.length.toLocaleString()} tables`) + ' · close means alike' : '');
+  $('lakehelp').textContent = L.dim === 3 ? 'drag to turn · shift-drag to move · wheel to zoom · click a dot' : 'drag to move · wheel to zoom · click a dot';
+  for (const b of $('lakedim').children) b.classList.toggle('on', b.dataset.v === String(L.dim));
+  for (const b of $('lakekind').children) b.classList.toggle('on', b.dataset.v === L.kind);
+  $('lakefollow').hidden = L.follow;
+}
+function lakeReset() { L.trail = []; L.ring = null; L.follow = true; L.sel = null; $('lakeinfo').hidden = true; lakeNote(); lakeDraw(); }
+const at = (d) => d.t[L.dim === 3 ? 'xyz' : 'xy'];
+const lakeDots = () => L.kind === 'column' && L.cols ? L.cdots : L.dots;
+function lakeDraw() {
+  if (!L.tables.length) return;
+  const touched = new Set(M.tables ? [...M.tables.keys()].filter((k) => M.tables.get(k).state || M.picked.has(k) || (M.ask && M.ask.tables.has(k))
+    || [...M.interps.values()].some((one) => one.tables.includes(k))) : []);
+  for (const [key, d] of L.dots) d.state = touched.has(key) ? tableState(key) : M.weighed && M.weighed.has(key) && !M.final ? 'weighed' : 'idle';
+  // a column: the judge's word on it when it has one, else the look of its table, quieter
+  for (const d of L.cdots.values()) {
+    const ts = L.dots.get(d.table.path).state, said = touched.has(d.table.path) && M.tables.get(d.table.path).cols.get(d.column);
+    d.state = said && !['passed', 'used', 'picked'].includes(ts) ? said : ['asking', 'picked', 'used'].includes(ts) ? (said === 'kept' ? 'used' : 'inside')
+      : ts === 'passed' || ts === 'dropped' ? 'idle' : ts === 'idle' ? 'idle' : 'weighed';
+  }
+  // the search looks at the tables it asks about, else the ones in use or picked, else the ones the judge kept
+  const dots = [...lakeDots().values()], pick = (states) => dots.filter((d) => states.includes(d.state));
+  const focus = [['asking'], ['used'], ['picked'], ['kept'], ['seen']].map(pick).find((f) => f.length) || [];
+  if (focus.length) {
+    const mid = [0, 1, 2].map((i) => focus.reduce((s, d) => s + (at(d)[i] || 0), 0) / focus.length);
+    const last = L.trail[L.trail.length - 1];
+    if (!last || Math.hypot(...mid.map((v, i) => v - last[i])) > .02) L.trail = [...L.trail.slice(-11), mid];
+    if (!L.ring || L.ring.length !== 3) L.ring = mid.slice();
+  }
+  // the view follows the search: the whole lake, closing in on the touched dots when there are some
+  const near = pick(['seen', 'kept', 'asking', 'picked', 'used', 'inside']);
+  let want = { c: [0, 0, 0], span: 2.2 };
+  if (near.length) {
+    const lo = [0, 1, 2].map((i) => Math.min(...near.map((d) => at(d)[i] || 0))), hi = [0, 1, 2].map((i) => Math.max(...near.map((d) => at(d)[i] || 0)));
+    want = { c: lo.map((v, i) => (v + hi[i]) / 2), span: Math.max(L.dim === 3 ? 1.4 : .9, ...hi.map((v, i) => (v - lo[i]) * 1.5)) };
+  }
+  L.want = want;
+  lakeNote();
+  if (!L.loop) { L.loop = true; requestAnimationFrame(lakeFrame); }
+}
+// a point on the canvas: [x, y, depth scale]; in 3D the lake turns around the camera's centre
+function lakeProject(p, w, h) {
+  const { c, span, yaw, pitch } = L.cam, s = Math.min(w, h) / span;
+  const dx = p[0] - c[0], dy = p[1] - c[1], dz = L.dim === 3 ? (p[2] || 0) - c[2] : 0;
+  if (L.dim !== 3) return [w / 2 + dx * s, h / 2 - dy * s, 1];
+  const x1 = dx * Math.cos(yaw) + dz * Math.sin(yaw), z1 = -dx * Math.sin(yaw) + dz * Math.cos(yaw);
+  const y2 = dy * Math.cos(pitch) - z1 * Math.sin(pitch), z2 = dy * Math.sin(pitch) + z1 * Math.cos(pitch);
+  const k = 1 / (1 - .2 * Math.max(-2, Math.min(2, z2)));  // depth in lake units, so zooming in never blows it up
+  return [w / 2 + x1 * s * k, h / 2 - y2 * s * k, k];
+}
+// one bad frame must not stop the drawing for good: the next lakeDraw starts it again
+function lakeFrame(now) {
+  try { lakePaint(now); } catch (e) { L.loop = false; throw e; }
+}
+function lakePaint(now) {
+  const cv = $('lakemap');
+  if (!document.body.classList.contains('map-open') || !L.tables.length || !cv.offsetWidth) { L.loop = false; return; }
+  const dpr = devicePixelRatio || 1, w = cv.offsetWidth, h = cv.offsetHeight;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  const g = cv.getContext('2d'), css = getComputedStyle(document.body), col = (n) => css.getPropertyValue('--' + n).trim();
+  const ease = (a, b, k = .12) => a + (b - a) * k;
+  let moving = false;
+  if (L.follow && L.want) {
+    L.cam.c = L.cam.c.map((v, i) => ease(v, L.want.c[i], .08)); L.cam.span = ease(L.cam.span, L.want.span, .08);
+    if (Math.abs(L.cam.span - L.want.span) > 1e-3 || L.cam.c.some((v, i) => Math.abs(v - L.want.c[i]) > 1e-3)) moving = true;
+    if (L.dim === 3) { L.cam.yaw += .0012; moving = true; }  // a slow turn shows the depth
+  }
+  const P = (p) => lakeProject(p, w, h);
+  g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  const line = (pairs, style) => {
+    g.beginPath();
+    for (const [a, b] of pairs) { const [ax, ay] = P(a), [bx, by] = P(b); g.moveTo(ax, ay); g.lineTo(bx, by); }
+    g.stroke();
+  };
+  const where = (t) => t[L.dim === 3 ? 'xyz' : 'xy'];
+  g.strokeStyle = col('line'); g.lineWidth = 1;
+  if (L.kind === 'table' && L.dim === 2) line(L.links.map(([a, b]) => [where(a), where(b)]));  // in 3D they cross into a tangle
+  // joins the interpretations use, as in the diagram: dotted accent
+  g.save(); g.strokeStyle = col('acc'); g.lineWidth = 1.4; g.setLineDash([1.5, 3.5]); g.lineCap = 'round';
+  line([...(M.joins || [])].map((j) => j.split('|').map((k) => L.dots.get(k))).filter(([a, b]) => a && b).map(([a, b]) => [where(a.t), where(b.t)]));
+  g.restore();
+  // where the search has looked: a thin line through its stops
+  if (L.trail.length > 1) {
+    g.save(); g.strokeStyle = col('acc'); g.globalAlpha = .35; g.lineWidth = 1; g.setLineDash([2, 4]); g.beginPath();
+    L.trail.forEach((p, i) => { const [x, y] = P(p); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); g.restore();
+  }
+  const pulse = (Math.sin(now / 320) + 1) / 2, dbs = new Map(), many = lakeDots().size > 5000;
+  const drawn = [];
+  for (const d of lakeDots().values()) {
+    const [r, a, , ring] = LOOK[d.state];
+    d.r = ease(d.r, r); d.a = ease(d.a, a); d.ring = ease(d.ring, ring);
+    if (Math.abs(d.r - r) > .01 || Math.abs(d.a - a) > .005 || ring) moving = true;
+    const [x, y, k] = P(at(d));
+    if (x < -10 || y < -10 || x > w + 10 || y > h + 10) continue;
+    d.x = x; d.y = y; d.k = k;
+    drawn.push(d);
+  }
+  // quiet dots first, the far ones first in 3D, so the lit ones sit on top
+  drawn.sort((a, b) => (b.state === 'idle') - (a.state === 'idle') || a.k - b.k);
+  for (const d of drawn) {
+    const c = LOOK[d.state][2], r = (d.r + (L.hover === d || L.sel === d ? 1.5 : 0)) * (L.dim === 3 ? d.k : 1) * (many && d.state === 'idle' ? .6 : 1);
+    g.globalAlpha = d.a * (L.dim === 3 ? Math.min(1, .35 + .65 * d.k * d.k) : 1); g.fillStyle = col(c);
+    if (many && d.state === 'idle') g.fillRect(d.x - r, d.y - r, 2 * r, 2 * r);
+    else { g.beginPath(); g.arc(d.x, d.y, r, 0, 7); g.fill(); }
+    if (d.ring > .05) { g.globalAlpha = d.ring * (1 - pulse) * .8; g.strokeStyle = col(c); g.lineWidth = 1.2; g.beginPath(); g.arc(d.x, d.y, r + 3 + pulse * 6, 0, 7); g.stroke(); }
+    if (!['idle', 'weighed', 'dropped', 'passed'].includes(d.state)) {
+      const one = dbs.get(d.table.database) || { x: 0, y: Infinity, n: 0 }; one.x += d.x; one.y = Math.min(one.y, d.y); one.n++; dbs.set(d.table.database, one);
+    }
+  }
+  g.globalAlpha = 1;
+  if (L.sel && L.sel.x != null) { g.strokeStyle = col('text'); g.lineWidth = 1.2; g.beginPath(); g.arc(L.sel.x, L.sel.y, 8, 0, 7); g.stroke(); }
+  // a database's name where the search went in it
+  g.font = '500 10.5px system-ui, sans-serif'; g.textAlign = 'center'; g.fillStyle = col('dim');
+  for (const [name, one] of dbs) g.fillText(name.replace(/_/g, ' '), one.x / one.n, one.y - 16);
+  // the ring: where the search is looking now
+  const goal = L.trail[L.trail.length - 1];
+  if (goal && L.ring) {
+    L.ring = L.ring.map((v, i) => ease(v, goal[i], .07));
+    if (Math.hypot(...L.ring.map((v, i) => v - goal[i])) > 1e-3) moving = true;
+    const [x, y] = P(L.ring);
+    g.strokeStyle = col('acc'); g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, 9, 0, 7); g.stroke();
+    g.fillStyle = col('acc'); g.beginPath(); g.arc(x, y, 2, 0, 7); g.fill();
+  }
+  if (L.hover && L.hover.x != null) {
+    const text = L.hover.key;
+    g.font = '11.5px system-ui, sans-serif'; const tw = g.measureText(text).width + 12;
+    const bx = Math.min(Math.max(4, L.hover.x - tw / 2), w - tw - 4), by = L.hover.y > 30 ? L.hover.y - 28 : L.hover.y + 10;
+    g.fillStyle = col('bg'); g.strokeStyle = col('line'); g.beginPath(); g.roundRect(bx, by, tw, 19, 6); g.fill(); g.stroke();
+    g.fillStyle = col('text'); g.textAlign = 'left'; g.fillText(text, bx + 6, by + 13.5);
+  }
+  if (moving || L.drag) requestAnimationFrame(lakeFrame); else L.loop = false;
+}
+function lakeNearest(e) {
+  const box = $('lakemap').getBoundingClientRect(), mx = e.clientX - box.left, my = e.clientY - box.top;
+  let best = null, gap = 10;
+  for (const d of lakeDots().values()) {
+    if (d.x == null) continue;
+    const far = Math.hypot(d.x - mx, d.y - my);
+    if (far < gap) { gap = far; best = d; }
+  }
+  return best;
+}
+// you move the view: it stops following the search until the follow button
+$('lakemap').addEventListener('pointerdown', (e) => {
+  L.drag = { x: e.clientX, y: e.clientY, moved: false, pan: L.dim !== 3 || e.shiftKey || e.button === 2 };
+  try { $('lakemap').setPointerCapture(e.pointerId); } catch (err) {}
+  $('lakemap').classList.add('dragging');
+});
+$('lakemap').addEventListener('pointermove', (e) => {
+  if (!L.drag) {
+    const d = lakeNearest(e);
+    $('lakemap').classList.toggle('over', !!d);
+    if (d !== L.hover) { L.hover = d; lakeDraw(); }
+    return;
+  }
+  const dx = e.clientX - L.drag.x, dy = e.clientY - L.drag.y;
+  if (!L.drag.moved && Math.hypot(dx, dy) < 4) return;
+  L.drag.moved = true; L.follow = false; L.drag.x = e.clientX; L.drag.y = e.clientY;
+  const cv = $('lakemap'), s = Math.min(cv.offsetWidth, cv.offsetHeight) / L.cam.span;
+  if (L.drag.pan) {
+    const { yaw } = L.cam, ux = dx / s, uy = dy / s;
+    if (L.dim === 3) { L.cam.c[0] -= ux * Math.cos(yaw); L.cam.c[2] -= ux * Math.sin(yaw); L.cam.c[1] += uy; }
+    else { L.cam.c[0] -= ux; L.cam.c[1] += uy; }
+  } else {
+    L.cam.yaw += dx * .008; L.cam.pitch = Math.max(-1.4, Math.min(1.4, L.cam.pitch + dy * .008));
+  }
+  lakeDraw();
+});
+$('lakemap').addEventListener('pointerup', (e) => {
+  const click = L.drag && !L.drag.moved;
+  L.drag = null; $('lakemap').classList.remove('dragging');
+  if (click) lakeOpen(lakeNearest(e));
+});
+$('lakemap').addEventListener('contextmenu', (e) => e.preventDefault());
+$('lakemap').addEventListener('wheel', (e) => {
+  e.preventDefault(); L.follow = false;
+  L.cam.span = Math.max(.05, Math.min(6, L.cam.span * Math.exp(e.deltaY * .0015)));
+  lakeDraw();
+}, { passive: false });
+$('lakemap').addEventListener('mouseleave', () => { L.hover = null; lakeDraw(); });
+new ResizeObserver(() => lakeDraw()).observe($('lakemap'));
+$('lakefollow').addEventListener('click', () => { L.follow = true; lakeDraw(); });
+$('lakedim').addEventListener('click', (e) => {
+  const v = Number(e.target.dataset.v);
+  if (!v || v === L.dim) return;
+  L.dim = v; store.set('amigo.lakedim', v); L.trail = []; L.ring = null; L.follow = true; lakeDraw();
+});
+$('lakekind').addEventListener('click', async (e) => {
+  const v = e.target.dataset.v;
+  if (!v || v === L.kind) return;
+  L.kind = v; store.set('amigo.lakekind', v); L.trail = []; L.ring = null; L.hover = null;
+  if (v === 'column') await lakeColumns();
+  lakeDraw();
+});
+// a table in the diagram points at its dot
+$('ltables').addEventListener('mouseover', (e) => {
+  const n = e.target.closest('.mnode'), d = n && n.dataset.key && L.dots.get(n.dataset.key.slice(1));
+  const hover = d && L.kind === 'table' ? d : null;
+  if (hover !== L.hover) { L.hover = hover; lakeDraw(); }
+});
+$('ltables').addEventListener('mouseleave', () => { L.hover = null; lakeDraw(); });
+// each card can take the whole side, and give it back
+for (const b of document.querySelectorAll('[data-big]')) b.addEventListener('click', () => {
+  const cls = 'big-' + b.dataset.big, on = !$('map').classList.contains(cls);
+  $('map').classList.remove('big-lake', 'big-diag');
+  $('map').classList.toggle(cls, on);
+  b.title = on ? 'Shrink' : 'Expand';
+  mapSoon(); lakeDraw();
+});
+// a dot's content: the table's columns and a few real rows, or the column's values
+async function lakeOpen(d) {
+  const box = $('lakeinfo');
+  L.sel = d || null; lakeDraw();
+  if (!d) { box.hidden = true; return; }
+  box.hidden = false; box.replaceChildren(el('small', null, 'loading…'));
+  let t;
+  try { t = await api(`/table?lake=${enc(L.lake)}&id=${d.table.id}`); } catch (e) { box.replaceChildren(el('small', null, e.message)); return; }
+  if (L.sel !== d) return;
+  const close = el('button', 'iconbtn x', '×'); close.title = 'Close'; close.onclick = () => lakeOpen(null);
+  const said = M.tables && M.tables.get(d.table.path), state = (name) => (said && said.cols.get(name)) || '';
+  const row = (a, b, cls) => { const r = el('div', 'row ' + (cls || '')); r.append(el('span', null, a), el('span', null, b)); return r; };
+  if (d.column) {
+    const c = t.columns.find((one) => one.name === d.column) || { samples: [] };
+    box.replaceChildren(close, el('b', null, d.column), el('small', null, `column of ${t.database}.${t.name}`));
+    if (c.description) box.append(el('p', null, c.description));
+    box.append(row('kind', c.kind || ''), row('different values', (c.distinct_count ?? '').toLocaleString()),
+      row('empty', c.empty_share != null ? Math.round(c.empty_share * 100) + '%' : ''));
+    const i = t.header.indexOf(d.column);
+    const values = i >= 0 ? t.rows.map((r) => r[i]) : c.samples;
+    box.append(el('small', null, 'some values'), ...values.map((v) => row(String(v), '')));
+  } else {
+    box.replaceChildren(close, el('b', null, t.name), el('small', null, `${t.database} · ${t.row_count.toLocaleString()} rows · ${t.columns.length} columns`));
+    if (t.description) box.append(el('p', null, t.description));
+    for (const c of t.columns) box.append(row(c.name, (c.samples || []).slice(0, 3).join(', '), state(c.name)));
+  }
+}
+// a table in the diagram points at its dot
+$('ltables').addEventListener('mouseover', (e) => {
+  const n = e.target.closest('.mnode'), d = n && L.dots.get(n.dataset.key.slice(1));
+  if (d !== L.hover) { L.hover = d || null; lakeDraw(); }
+});
+$('ltables').addEventListener('mouseleave', () => { L.hover = null; lakeDraw(); });
+function setMap(open) {
+  document.body.classList.toggle('map-open', open);
+  $('mapbtn').classList.toggle('on', open);
+  store.set('amigo.map', open ? 'open' : 'closed');
+  mapSoon(); lakeDraw();
+}
+$('mapbtn').addEventListener('click', () => setMap(!document.body.classList.contains('map-open')));
+
+// ---- start ----
+(async () => {
+  await Promise.all([loadLakes().catch(() => {}), loadSettings()]);
+  setNav(store.get('amigo.nav') ? store.get('amigo.nav') === 'open' : innerWidth > 1000);
+  setMap(store.get('amigo.map') ? store.get('amigo.map') === 'open' : innerWidth > 1000);
+  mapReset('');
+  // a reload goes back to the run still going, if there is one
+  const current = await loadChats();
+  if (current && current.live) openChat(current.chat);
+  $('q').focus();
+})();
+</script>
+</body>
+</html>

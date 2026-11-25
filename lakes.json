@@ -1,0 +1,35 @@
+{
+  "bird_dev": {
+    "databases": "benchmarks/bird/dev_databases/*/*.sqlite",
+    "questions": "benchmarks/bird/dev.json"
+  },
+  "spider_dev": {
+    "databases": "benchmarks/spider/database/*/*.sqlite",
+    "questions": "benchmarks/spider/dev.json"
+  },
+  "beaver_dw": {
+    "databases": "benchmarks/beaver_dw/dev_database/*/*.sqlite",
+    "questions": "benchmarks/beaver_dw/dev.json"
+  },
+  "beaver_nw": {
+    "databases": "benchmarks/beaver_nw/dev_database/*/*.sqlite",
+    "questions": "benchmarks/beaver_nw/dev.json"
+  },
+  "fiben": {
+    "databases": "benchmarks/fiben/dev_database/*/*.sqlite",
+    "questions": "benchmarks/fiben/dev.json"
+  },
+  "mmqa": {
+    "databases": "benchmarks/MMQA/databases/*/*.sqlite",
+    "questions": "benchmarks/MMQA/dev.json"
+  },
+  "taco_us": {
+    "databases": "benchmarks/taco_us/databases/*/*.sqlite",
+    "questions": "benchmarks/taco_us/dev.json",
+    "cross_questions": "benchmarks/taco_us/dev_cross.json"
+  },
+  "spider2_lite": {
+    "databases": "benchmarks/spider2_lite/databases/*/*.sqlite",
+    "questions": "benchmarks/spider2_lite/dev.json"
+  }
+}

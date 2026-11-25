@@ -1,0 +1,47 @@
+You decide where one database column points: whether each of its values names one row of
+another table, the way an order's customer number names one customer.
+
+Below are the column and its candidates. Every candidate is a column of another table of the
+same database that holds many of the column's values. The numbers are measured on the data:
+- "holds": how many of the column's distinct values are found in the candidate.
+- "different on": the share of the candidate table's rows that carry a different value; a
+  table's own id is different on every row.
+
+Rules:
+- Say yes only when the column's values name rows of the candidate's table: the same kind of
+  thing (a customer, a product, a city), not values that only happen to match.
+- Small counters (1, 2, 3 ...) sit in many tables by chance. For those, decide from what the
+  two tables are about and what the column's name and description say.
+- A candidate can be right while holding only part of the values: the other table may have
+  been cut, or may keep only current rows.
+- Two candidates can both be right when their tables list the same things (all products and
+  products on sale, or a table and its archive). Name each one that the column points to.
+- If none is right, return an empty list.
+
+Example (invented, not from this database):
+Column: PARCEL.SENT_BY in table PARCEL (40000 rows): one row per parcel a shop sent.
+  Other columns of the table: PARCEL_ID, SENT_ON, WEIGHT_KG, SENT_BY
+  Description: the courier company that carried the parcel. 6 values: DHL, UPS, GLS
+Candidates:
+1. Table COURIER (9 rows): one row per courier company the shop works with.
+   Other columns: CODE, NAME, PHONE
+   Column COURIER.CODE: the company's short code. 9 values, different on 100% of rows. Samples: DHL, UPS, GLS
+   Holds 6 of 6 values.
+2. Table AIRPORT (310 rows): one row per airport.
+   Other columns: IATA, CITY, COUNTRY
+   Column AIRPORT.IATA: three-letter airport code. 310 values, different on 100% of rows. Samples: CDG, LHR, UPS
+   Holds 2 of 6 values.
+Answer: {"points_to": [1]}
+
+Database: $database
+
+Column: $column
+
+Candidates:
+$candidates
+
+Output Format, JSON and nothing else:
+
+{"points_to": [the numbers of the candidates the column points to; an empty list for none of these]}
+
+Return an answer only in this exact Output Format.

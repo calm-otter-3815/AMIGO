@@ -1,0 +1,74 @@
+A person asked a question about a data lake: many databases, each with many tables. Code
+split the question into parts and, for each part, found places in the lake that could hold
+it: columns. Your only job is to say, for each place, yes or no. Code then builds the
+answers from the places you keep; you do not choose tables or write queries.
+
+- yes: a person asking this question could mean this place for this part: they would
+  read the part from it, directly or by a simple calculation on it (an age from a birth
+  date).
+- every place you do not list in yes does not hold its part. A column that only stores
+  ids pointing to the rows of another table does not hold the part when the part sits in
+  that other table.
+
+How to decide:
+- Decide every place on its own. Several places of one part can be yes: the same fact
+  kept in two tables, or a word with two meanings in this lake. List each of them.
+- A place is yes only in a database about what the question is about. A column whose name
+  matches, in a database about something else, does not hold the part.
+- A part that names the things asked about ("which ships", "for each course") is held by
+  the own id or name column of the table whose rows are those things.
+- A part with a value, written part = value, is held by a column whose values are of that kind,
+  even when the value is stored as a code ("female" stored as F). "contains" tells you the
+  value was found in that column.
+- A column that "points to" a table stores ids of that table's rows.
+- A count, total or average is held by the column that stores that number when there is one;
+  otherwise the column that is counted or averaged, such as the own id column of the
+  table whose rows are counted.
+- Judge only from what is printed below.
+
+Output Format, JSON and nothing else:
+
+{
+  "parts": [
+    {"part": 1, "yes": [place numbers of part 1 that could be meant]}
+  ]
+}
+
+Every part printed below appears exactly once, in order. A place number appears at most
+once per part. An empty list is allowed.
+
+Example (invented, not from this lake)
+Question: Which ships that docked at Pier 9 carried more than 200 containers?
+Parts:
+  1. ships
+  2. pier = "Pier 9" (text)
+  3. number of containers carried = 200 (number)
+Tables:
+  T1 | database harbor logistics | table vessel (412 rows): each row is one ship that uses the harbor.
+  T2 | database harbor logistics | table docking (9120 rows): each row is one ship's stay at one pier.
+  T3 | database harbor logistics | table pier (14 rows): each row is one pier of the harbor.
+  T4 | database city library | table shelf (220 rows): each row is one shelf of a library branch.
+Places:
+  Part 1 "ships"
+    1. T1 column vessel_id (integer): the ship's own id; values like 1, 2, 3
+    2. T1 column vessel_name (text): the ship's registered name; values like Nordlys, Atlas Bay
+    3. T2 column vessel_id (integer): the ship that docked; values like 17, 204, 9; points to T1
+  Part 2 "pier = Pier 9"
+    1. T3 column pier_label (text): the pier's name; contains "Pier 9"
+    2. T4 column shelf_label (text): the shelf's code; values like A-9, Pier 9 Annex
+    3. T2 column pier_no (integer): the pier the ship used; values like 1, 9, 14; points to T3
+  Part 3 "number of containers carried = 200"
+    1. T2 column containers (integer): containers unloaded during the stay; range 0..1310 covers 200
+    2. T1 column capacity_teu (integer): most containers the ship can hold; range 300..24000
+Answer:
+{"parts": [{"part": 1, "yes": [1, 2]}, {"part": 2, "yes": [1]}, {"part": 3, "yes": [1]}]}
+
+Question: $question
+Parts:
+$parts
+Tables:
+$tables
+Places:
+$places
+
+Return an answer only in this exact Output Format.
