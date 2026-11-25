@@ -19,7 +19,7 @@ from pathlib import Path
 
 VLLM = os.environ.get("QWEN_URL", "http://localhost:8000/v1").removesuffix("/v1") + "/metrics"
 # the cgroup of the SLURM job the timed commands run in
-CGROUP = Path(os.environ.get("LATENCY_CGROUP", "/sys/fs/cgroup/system.slice/node04_slurmstepd.scope/job_109716"))
+CGROUP = Path(os.environ.get("LATENCY_CGROUP", "/sys/fs/cgroup/system.slice/SLURM_STEP.scope"))
 TICK = os.sysconf("SC_CLK_TCK")
 
 

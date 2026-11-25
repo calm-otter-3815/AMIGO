@@ -142,9 +142,7 @@ Tests:
 
 ## Multi-valid labels
 
-The multi-valid labels of the paper are in `multi_valid_labels/<benchmark>/labels.jsonl.gz`, with
-the questions they label in `questions.jsonl.gz`, for BIRD, Spider and MMQA. To score against
-them, unpack each pair into `runs/labeler/<benchmark>/`.
+The multi-valid labels of the paper are in `multi_valid_labels/<benchmark>/labels.jsonl.gz`, with the questions they label in `questions.jsonl.gz`, for BIRD, Spider and MMQA. To score against them, unpack each pair into `runs/labeler/<benchmark>/`.
 
 ## Benchmark labels
 
@@ -175,13 +173,6 @@ LABEL_RUN=bird_dev .venv/bin/python -m labeler.label    # summary per lake
 Replies go to `runs/labeler/cache-<run>.jsonl`. `LABEL_URL` points at another vLLM server and
 `LABEL_CACHE` at another cache file.
 
-## Paper
-
-`paper/` is the Overleaf project, kept as a git submodule with its own history.
-Clone with `git clone --recurse-submodules`, or run `git submodule update --init`
-after a plain clone (needs access to the Overleaf project). Inside `paper/`,
-`git pull` and `git push` sync with Overleaf.
-
 ## Layout
 
 ```
@@ -192,7 +183,6 @@ prompts/       the LLM prompts, one text file per call
 ui/            the page served by `serve`
 labeler/       benchmark relabeling: every valid answer per question
 experiments/   evaluation scripts
-paper/         the paper (Overleaf submodule)
 tests/         unit tests, run with pytest
 ```
 
